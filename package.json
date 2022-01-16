@@ -1,0 +1,26 @@
+{
+  "public": true,
+  "name": "@module-federation/nextjs-ssr",
+  "version": "3.2.2",
+  "description": "Module Federation helper for NextJS",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "repository": "https://github.com/module-federation/nextjs-ssr",
+  "author": "Zack Jackson <zackary.l.jackson@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "prettier": "prettier --write \"**/*.{js,json,md,ts,tsx}\""
+  },
+  "publishConfig": {
+    "registry": "https://r.privjs.com"
+  },
+  "dependencies": {
+    "webpack-federated-stats-plugin": "2.0.8",
+    "chalk": "^4.1.2"
+  },
+  "devDependencies": {
+    "next": "12.0.7",
+    "prettier": "2.3.2",
+    "webpack": "^5.65.0"
+  }
+}
