@@ -1,5 +1,4 @@
-const rpcLoadTemplate = require("../templates/rpcLoad");
-
+import rpcLoadTemplate from "../templates/rpcLoad";
 const rpcPerformTemplate = `
     ${rpcLoadTemplate}
     function rpcPerform(remoteUrl) {
@@ -92,4 +91,4 @@ class StreamingFederation {
   }
 }
 
-module.exports = StreamingFederation;
+export default StreamingFederation;

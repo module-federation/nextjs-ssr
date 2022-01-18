@@ -2,7 +2,7 @@
  * rpcLoad(baseURI, fileName, cb)
  * rpcLoad(scriptUrl, cb)
  */
-module.exports = `
+export default `
     function rpcLoad() {
         var url;
         var cb = arguments[arguments.length - 1];

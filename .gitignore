@@ -102,6 +102,7 @@ dist
 
 # TernJS port file
 .tern-port
-\
 ./bundle.js
 ./compiled.jsc
+/.idea/
+/compiled.jsc

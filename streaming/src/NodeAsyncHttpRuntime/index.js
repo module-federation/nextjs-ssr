@@ -1,4 +1,4 @@
-const CommonJsChunkLoadingPlugin = require("./CommonJsChunkLoadingPlugin");
+import CommonJsChunkLoadingPlugin from "./CommonJsChunkLoadingPlugin";
 
 class NodeSoftwareStreamRuntime {
   constructor(options, context) {
@@ -46,4 +46,4 @@ class NodeSoftwareStreamRuntime {
   }
 }
 
-module.exports = NodeSoftwareStreamRuntime;
+export default NodeSoftwareStreamRuntime;

@@ -1,7 +1,4 @@
-const NodeSoftwareStreamRuntime = require("./NodeSoftwareStreamRuntime");
-const StreamingFederation = require("./StreamingFederation");
+import NodeSoftwareStreamRuntime from "./NodeAsyncHttpRuntime";
+import StreamingFederation from "./NodeModuleFederation";
 
-module.exports = {
-  NodeSoftwareStreamRuntime,
-  StreamingFederation,
-};
+export { NodeSoftwareStreamRuntime, StreamingFederation };
