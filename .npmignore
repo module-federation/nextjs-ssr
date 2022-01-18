@@ -1,0 +1,8 @@
+.idea
+/streaming
+/lib/noop.js
+/lib/with-federated-sidecar.*
+index.js
+rollup.config.js
+*.log
+bundle.js
