@@ -69,7 +69,7 @@ class StreamingFederation {
     // When used with Next.js, context is needed to use Next.js webpack
     const { webpack } = this.context;
 
-    new (webpack && webpack.container.ModuleFederationPlugin ||
+    new ((webpack && webpack.container.ModuleFederationPlugin) ||
       require("webpack/lib/container/ModuleFederationPlugin"))({
       ...this.options,
       remotes: buildRemotes(this.options),
