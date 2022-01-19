@@ -157,7 +157,7 @@ withFederatedSidecar(
 
 ## Demo
 
-You can see it in action here: https://github.com/module-federation/module-federation-examples/tree/master/nextjs
+You can see it in action here: https://github.com/module-federation/module-federation-examples/tree/master/nextjs-ssr
 
 ## How to add a sidecar for exposes to your next.js app
 
@@ -245,4 +245,4 @@ Our software is backed with the resources of a multi-billion dollar corporation.
 If you have any questions or need to report a bug
 <a href="https://twitter.com/ScriptedAlchemy"> Reach me on Twitter @ScriptedAlchemy</a>
 
-Or join this discussion thread: https://github.com/module-federation/module-federation-examples/discussions/978
+Or join this discussion thread: https://github.com/module-federation/module-federation-examples/discussions/1482
