@@ -4,19 +4,21 @@ This plugin enables Module Federation on Next.js, both client-side and server-si
 
 Module Federation on the server utilizes proprietary software, commonly known as "Software Streaming"
 
-This is the only *stable* and continuously supported solution for Module Federation on Next.js.
+This is the only _stable_ and continuously supported solution for Module Federation on Next.js.
 
 It is also the only Federated SSR solution in existence that is supported by the creator of Module Federation.
 
-#### This is currently in beta, and should be considered experimental till v1 is released. 
-Software Streams have been tested extensively in other federated server applications, the underlying tech is proven to be reliable. 
-However, software streams in Next.js is experimental, while  in  the beta phase. 
+#### This is currently in beta, and should be considered experimental till v1 is released.
 
-Companies have used streams with next.js in the past - but those streaming plugins were based on a leaked alpha we created before Webpack 5 was released. 
+Software Streams have been tested extensively in other federated server applications, the underlying tech is proven to be reliable.
+However, software streams in Next.js is experimental, while in the beta phase.
+
+Companies have used streams with next.js in the past - but those streaming plugins were based on a leaked alpha we created before Webpack 5 was released.
 
 This is the first time the Federation Group has made its proprietary technology available to others. Our technology is the most stable in existence.
 
-This is because of our proximity to the Webpack Foundation & deep understanding  
+This is because of our proximity to the Webpack Foundation & deep understanding
+
 ### Supports
 
 - next ^11.x.x || ^12.x.x
@@ -55,7 +57,9 @@ const sharedDefaults = {
   },
 };
 ```
+
 ## Important note about security!
+
 This plugin creates a remote container for the server-side. By default, it is written to `_next/static/ssr`.
 It is highly recommended that network access to `_next/static/ssr/*` is restricted to servers/machines inside the VPN or internal infrastructure.
 
@@ -63,35 +67,38 @@ If access to that route is not restricted, you could risk exposing server code t
 
 Since the ssr directory is built for server-side, webpack will not tree-shake `process.browser` conditionals.
 
-If you currently use `if(process.browser)` as a way to prevent private code or keys from showing up in bundled code, that will not work  - this is becuse we are building both a client and server target and are exposing it via `static` directory which is accessible over networks. 
+If you currently use `if(process.browser)` as a way to prevent private code or keys from showing up in bundled code, that will not work - this is becuse we are building both a client and server target and are exposing it via `static` directory which is accessible over networks.
 
 **Why would we put it in static?!?**
 
 The goal of this software is to make federation "just work" with one single plugin and as little setup as possible.
 
-To provide a built-in protected route would require additional setup and complexity, like middleware, or a custom server. 
+To provide a built-in protected route would require additional setup and complexity, like middleware, or a custom server.
 
 How assets are protected should be up to the consumer, who might use the CDN, NGIX, middleware to implement a restricted route.
 
 ## Using The Plugin
+
 I now support the top-level API as well as the low-level API
 
 Federated modules can be used in these various methods
 
 Static, synchronous imports
+
 ```js
-import SomeComponent from 'next2/SomeComponent'
-// OR 
-const SomeComponent = require('next2/ScomeComponent')
+import SomeComponent from "next2/SomeComponent";
+// OR
+const SomeComponent = require("next2/ScomeComponent");
 ```
-This plugin can be used for any piece of code, not just React Components. 
+
+This plugin can be used for any piece of code, not just React Components.
 
 Hooks, Middleware, Context, utilities, anything.
 
 Async imports are recommended, whenever possible
 
 ```js
-const SampleComponent = dynamic(()=>import("next2/SampleComponent"))
+const SampleComponent = dynamic(() => import("next2/SampleComponent"));
 
 // alternatively the low-level api can be used as well
 // using the low-level api requires the remote to already be injected
@@ -108,12 +115,12 @@ Make sure you are using `mini-css-extract-plugin@2` - version 2 supports resolvi
 ## Options
 
 ```js
-const remotes = (isServer)=> {
-  const location = isServer ? "ssr" : "chunks"
+const remotes = (isServer) => {
+  const location = isServer ? "ssr" : "chunks";
   return {
-    "next1":`next1@https://someapp.com/_next/static/${location}/remoteEntry.js?${Date.now()}`
-  }
-}
+    next1: `next1@https://someapp.com/_next/static/${location}/remoteEntry.js?${Date.now()}`,
+  };
+};
 withFederatedSidecar(
   {
     name: "next2",
@@ -159,12 +166,12 @@ You can see it in action here: https://github.com/module-federation/module-feder
 ```js
 // next.config.js
 const { withFederatedSidecar } = require("@module-federation/nextjs-ssr");
-const remotes = (isServer)=> {
-  const location = isServer ? "ssr" : "chunks"
+const remotes = (isServer) => {
+  const location = isServer ? "ssr" : "chunks";
   return {
-    "next1":`next1@https://someapp.com/_next/static/${location}/remoteEntry.js?${Date.now()}`
-  }
-}
+    next1: `next1@https://someapp.com/_next/static/${location}/remoteEntry.js?${Date.now()}`,
+  };
+};
 module.exports = withFederatedSidecar({
   name: "next2",
   filename: "static/chunks/remoteEntry.js",
@@ -201,22 +208,24 @@ module.exports = {
 ```
 
 ## Support and Maintenance
+
 This software is maintained by the Module Federation Group.
 The primary maintainer is ScriptedAlchemy - the creator of Module Federation & an official member of the Webpack Foundation
 
 Worldwide, there are only about 10 engineers capable of creating reliable and safe extensions of Module Federation.
 
-The Federation Group provides 5 of the 10 engineers capable of creating solid implementations. 
+The Federation Group provides 5 of the 10 engineers capable of creating solid implementations.
 
 Any Federation Package that is not from The Webpack Foundation or Module Federation Group should be used with caution!
 
-This software is actively used in production at our place of employment. It must be maintained at all times otherwise our production applications will fail. 
+This software is actively used in production at our place of employment. It must be maintained at all times otherwise our production applications will fail.
 
 Worries about reliability or contingency plans should not be a concern for end-users.
 
-If this package fails, it will cost our employer millions of dollars a day. It will not be abandoned, it cannot be. 
+If this package fails, it will cost our employer millions of dollars a day. It will not be abandoned, it cannot be.
 
 #### What if ScriptedAlchemy is hit by a bus?
+
 While that would be unfortunate, the Federation Group is more than capable of maintaining this package.
 
 All group members have full access to the organization and all its source code, registry authentication.
@@ -224,9 +233,10 @@ All group members have full access to the organization and all its source code, 
 ScriptedAlchemy is the primary maintainer, not the only maintainer - this software is not dependent on "one person"
 
 ## Reliability Testing
+
 This software undergoes significant QA, SRE, Security Audits, Performance testing with our employer.
 
-RUM data and other telemetry is heavily implemented and monitored closely. 
+RUM data and other telemetry is heavily implemented and monitored closely.
 
 Our software is backed with the resources of a multi-billion dollar corporation.
 
