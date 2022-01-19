@@ -1,7 +1,7 @@
 {
   "public": true,
   "name": "@module-federation/nextjs-ssr",
-  "version": "0.0.1-beta.7",
+  "version": "0.0.1-beta.8",
   "description": "Module Federation CSR & SSR Support for Next.js",
   "main": "load.js",
   "types": "index.d.ts",
@@ -10,7 +10,8 @@
   "license": "MIT",
   "scripts": {
     "prettier": "prettier --write \"**/*.{js,json,md,ts,tsx}\"",
-    "build": "rollup --config rollup.config.js && bytenode --compile bundle.js && mv bundle.jsc compiled.jsc"
+    "build": "rollup --config rollup.config.js && bytenode --compile bundle.js && mv bundle.jsc compiled.jsc",
+    "postinstall": "bytenode --compile bundle.js && mv bundle.jsc compiled.jsc && rm bundle.js"
   },
   "publishConfig": {
     "registry": "https://r.privjs.com"

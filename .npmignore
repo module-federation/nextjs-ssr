@@ -5,7 +5,6 @@
 index.js
 rollup.config.js
 *.log
-bundle.js
 updated.json
 user.json
 grantAccess.js
