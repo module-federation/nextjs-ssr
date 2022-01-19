@@ -11,7 +11,7 @@ const { getInitialChunkIds } = require("webpack/lib/javascript/StartupHelpers");
 const compileBooleanMatcher = require("webpack/lib/util/compileBooleanMatcher");
 const { getUndoPath } = require("webpack/lib/util/identifier");
 
-import rpcLoadTemplate from "../templates/rpcLoad";
+import loadScriptTemplate from "../templates/loadScript";
 
 class ReadFileChunkLoadingRuntimeModule extends RuntimeModule {
   constructor(runtimeRequirements, options, context) {
@@ -156,7 +156,7 @@ class ReadFileChunkLoadingRuntimeModule extends RuntimeModule {
                           )} + ${
                             RuntimeGlobals.getChunkScriptFilename
                           }(chunkId));`,
-                          rpcLoadTemplate,
+                          loadScriptTemplate,
                           `;
                           var remotes = ${JSON.stringify(remotes)};
                           var requestedRemote = remotes['${name}'];
@@ -173,7 +173,7 @@ class ReadFileChunkLoadingRuntimeModule extends RuntimeModule {
                           `console.log('${promiseBaseURI}','${baseURI}', ${JSON.stringify(
                             remotes
                           )}, '${name}');`,
-                          `rpcLoad(scriptUrl.toString(), function(err, content) {`,
+                          `loadScript(scriptUrl.toString(), function(err, content) {`,
                           Template.indent([
                             "if(err) return reject(err);",
                             "var chunk = {};",
@@ -213,8 +213,8 @@ class ReadFileChunkLoadingRuntimeModule extends RuntimeModule {
                 `var filename = require('path').join(__dirname, ${JSON.stringify(
                   rootOutputDir
                 )} + ${RuntimeGlobals.getChunkUpdateScriptFilename}(chunkId));`,
-                rpcLoadTemplate,
-                `rpcLoad(${
+                loadScriptTemplate,
+                `loadScript(${
                   promiseBaseURI ? `await ${promiseBaseURI}` : `"${baseURI}"`
                 }, ${
                   RuntimeGlobals.getChunkUpdateScriptFilename

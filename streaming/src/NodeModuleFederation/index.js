@@ -1,7 +1,7 @@
-import rpcLoadTemplate from "../templates/rpcLoad";
-const rpcPerformTemplate = `
-    ${rpcLoadTemplate}
-    function rpcPerform(remoteUrl) {
+import loadScriptTemplate from "../templates/loadScript";
+const executeLoadTemplate = `
+    ${loadScriptTemplate}
+    function executeLoad(remoteUrl) {
         const scriptUrl = remoteUrl.split("@")[1];
         const moduleName = remoteUrl.split("@")[0];
         return new Promise(function (resolve, reject) {
@@ -18,26 +18,12 @@ const rpcPerformTemplate = `
             reject(e);
           }
         })
-            //   rpcLoad(scriptUrl, function(error, scriptContent) {
-            //     if (error) { reject(error); }
-            //     //TODO using vm??
-            //     const remote = eval(scriptContent + '\\n  try{' + moduleName + '}catch(e) { null; };');
-            //     if (!remote) {
-            //       reject("remote library " + moduleName + " is not found at " + scriptUrl);
-            //     } else if (remote instanceof Promise) {
-            //         return remote;
-            //     } else {
-            //         resolve(remote);
-            //     }
-            // });
         });
     }
 `;
 
-const rpcProcessTemplate = (mfConfig) => `
-    function rpcProcess(remote) {
-    console.log(remote);
-        console.log('remote',remote.get);
+const processRemoteLoadTemplate = (mfConfig) => `
+    function processRemoteLoad(remote) {
         return {get:(request)=> remote.get(request),init:(arg)=>{try {return remote.init({
             ...arg,
             ${Object.keys(mfConfig.shared || {})
@@ -60,14 +46,14 @@ const rpcProcessTemplate = (mfConfig) => `
 
 function buildRemotes(mfConf) {
   const builtinsTemplate = `
-    ${rpcPerformTemplate}
-    ${rpcProcessTemplate(mfConf)}
+    ${executeLoadTemplate}
+    ${processRemoteLoadTemplate(mfConf)}
   `;
   return Object.entries(mfConf.remotes || {}).reduce((acc, [name, config]) => {
     acc[name] = {
       external: `external (function() {
         ${builtinsTemplate}
-        return rpcPerform("${config}").then(rpcProcess)
+        return executeLoad("${config}").then(processRemoteLoad)
       }())`,
     };
     return acc;
@@ -83,7 +69,7 @@ class StreamingFederation {
     // When used with Next.js, context is needed to use Next.js webpack
     const { webpack } = this.context;
 
-    new (webpack?.container.ModuleFederationPlugin ||
+    new (webpack && webpack.container.ModuleFederationPlugin ||
       require("webpack/lib/container/ModuleFederationPlugin"))({
       ...this.options,
       remotes: buildRemotes(this.options),

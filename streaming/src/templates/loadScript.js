@@ -1,15 +1,14 @@
 /**
- * rpcLoad(baseURI, fileName, cb)
- * rpcLoad(scriptUrl, cb)
+ * loadScript(baseURI, fileName, cb)
+ * loadScript(scriptUrl, cb)
  */
 export default `
-    function rpcLoad() {
+    function loadScript() {
         var url;
         var cb = arguments[arguments.length - 1];
         if (typeof cb !== "function") {
             throw new Error("last argument should be a function");
         }
-        console.log('rpc load');
         console.log(arguments[1], arguments[0]); 
         if (arguments.length === 2) {
             url = arguments[0];
