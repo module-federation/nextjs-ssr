@@ -5,11 +5,11 @@
 "use strict";
 
 const RuntimeGlobals = require("webpack/lib/RuntimeGlobals");
-const  RuntimeModule = require("webpack/lib/RuntimeModule")
-const Template = require( "webpack/lib/Template");
+const RuntimeModule = require("webpack/lib/RuntimeModule");
+const Template = require("webpack/lib/Template");
 const { getInitialChunkIds } = require("webpack/lib/javascript/StartupHelpers");
 const compileBooleanMatcher = require("webpack/lib/util/compileBooleanMatcher");
-const { getUndoPath } = require("webpack/lib/util/identifier")
+const { getUndoPath } = require("webpack/lib/util/identifier");
 
 import rpcLoadTemplate from "../templates/rpcLoad";
 
@@ -48,7 +48,7 @@ class ReadFileChunkLoadingRuntimeModule extends RuntimeModule {
     );
     const conditionMap = chunkGraph.getChunkConditionMap(
       chunk,
-      webpack && webpack.javascript.JavascriptModulesPlugin.chunkHasJs ||
+      (webpack && webpack.javascript.JavascriptModulesPlugin.chunkHasJs) ||
         require("webpack/lib/javascript/JavascriptModulesPlugin").chunkHasJs
     );
     const hasJsMatcher = compileBooleanMatcher(conditionMap);
@@ -56,7 +56,9 @@ class ReadFileChunkLoadingRuntimeModule extends RuntimeModule {
 
     const outputName = this.compilation.getPath(
       (
-        webpack && webpack.javascript.JavascriptModulesPlugin.getChunkFilenameTemplate ||
+        (webpack &&
+          webpack.javascript.JavascriptModulesPlugin
+            .getChunkFilenameTemplate) ||
         require("webpack/lib/javascript/JavascriptModulesPlugin")
           .getChunkFilenameTemplate
       )(chunk, this.compilation.outputOptions),

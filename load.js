@@ -1,3 +1,2 @@
-
-require('bytenode');
-module.exports = require('./compiled.jsc')
+require("bytenode");
+module.exports = require("./compiled.jsc");
