@@ -187,11 +187,21 @@ module.exports = withFederatedSidecar({
     },
   },
 })({
-  // your original next.config.js export
+  webpack(config, options) {
+    // your original next.config.js export
+
+    // we attach next internals to share scope at runtime
+    config.module.rules.push({
+      test: /pages\/_app.[jt]sx?/,
+      loader: "@module-federation/nextjs-ssr/lib/federation-loader.js",
+    });
+
+    return config;
+  },
 });
 ```
 
-2. For the consuming/host applications you must add the loader to next.config.js, and ensure you have a [custom Next.js App](https://nextjs.org/docs/advanced-features/custom-app) `pages/_app.js` (or `.tsx`):
+Consuming/host applications you must at least add the loader to next.config.js, and ensure you have a [custom Next.js App](https://nextjs.org/docs/advanced-features/custom-app) `pages/_app.js` (or `.tsx`):
 
 ```js
 module.exports = {
@@ -205,6 +215,51 @@ module.exports = {
     return config;
   },
 };
+```
+
+### Experiments
+
+**Chunk Flushing**
+
+Chunk Flushing is the mechanism used to _flush_ dynamic imported chunks out of a render and into the HTML of a document.
+If you want to SSR the `<script>` tags of federated imports, reducing Round Trip Time (RTT). You can enable the following experiment
+
+1. Inside `_document.js` do the following
+
+```js
+import Document, { Html, Head, Main, NextScript } from "next/document";
+// import chunk flushing mechanism from the package
+import flushChunks from "@module-federation/nextjs-ssr/flushChunks";
+
+class MyDocument extends Document {
+  static async getInitialProps(ctx) {
+    const initialProps = await Document.getInitialProps(ctx);
+
+    return {
+      ...initialProps,
+      // await and return the flushed chunks
+      remoteChunks: await flushChunks(),
+    };
+  }
+
+  render() {
+    return (
+      <Html>
+        <Head>
+          <meta name="robots" content="noindex" />
+          {/*render the prop in the Head component*/}
+          {this.props.remoteChunks}
+        </Head>
+        <body className="bg-background-grey">
+          <Main />
+          <NextScript />
+        </body>
+      </Html>
+    );
+  }
+}
+
+export default MyDocument;
 ```
 
 ## Support and Maintenance

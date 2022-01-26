@@ -7,3 +7,5 @@ rollup.config.js
 updated.json
 user.json
 grantAccess.js
+flushChunksOrig.js
+rollup.flushchunks.config.js

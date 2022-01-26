@@ -5,12 +5,12 @@ import builtins from "rollup-plugin-node-builtins";
 import { obfuscator } from "rollup-obfuscator";
 
 export default {
-  input: "index.js",
+  input: "flushChunksOrig.js",
   output: {
-    file: "bundle.js",
+    file: "flushChunks.js",
     format: "cjs",
   },
-  external: ["fs", "path", "webpack"], // tells Rollup 'I know what I'm doing here'
+  external: ["fs", "path", "react"], // tells Rollup 'I know what I'm doing here'
   plugins: [
     nodeResolve({ preferBuiltins: true }), // or `true`
     commonjs(),
@@ -18,6 +18,6 @@ export default {
       dirname: false,
     }),
     builtins(),
-    // obfuscator(),
+    obfuscator(),
   ],
 };

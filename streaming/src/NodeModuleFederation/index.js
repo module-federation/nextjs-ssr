@@ -23,8 +23,12 @@ const executeLoadTemplate = `
 `;
 
 const processRemoteLoadTemplate = (mfConfig) => `
-    function processRemoteLoad(remote) {
-        return {get:(request)=> remote.get(request),init:(arg)=>{try {return remote.init({
+    function processRemoteLoad(remote, name, path) {
+        return {
+        get:(request)=> remote.get(request)
+        chunkMap: remote.chunkMap,
+        path: path,
+        init:(arg)=>{try {return remote.init({
             ...arg,
             ${Object.keys(mfConfig.shared || {})
               .filter(
@@ -49,15 +53,21 @@ function buildRemotes(mfConf) {
     ${executeLoadTemplate}
     ${processRemoteLoadTemplate(mfConf)}
   `;
-  return Object.entries(mfConf.remotes || {}).reduce((acc, [name, config]) => {
-    acc[name] = {
-      external: `external (function() {
+
+  return Object.entries(mfConf.remotes || {}).reduce(
+    (acc, [name, config]) => {
+      const template = `new Promise(function(res) {
         ${builtinsTemplate}
-        return executeLoad("${config}").then(processRemoteLoad)
-      }())`,
-    };
-    return acc;
-  }, {});
+        res(executeLoad("${config}").then(function(remote){return processRemoteLoad(remote,${JSON.stringify(
+        name
+      )},"${config}")}))
+      })`;
+      acc.runtime[name] = `()=> ${template}`;
+      acc.buildTime[name] = `promise ${template}`;
+      return acc;
+    },
+    { runtime: {}, buildTime: {} }
+  );
 }
 
 class StreamingFederation {
@@ -68,11 +78,15 @@ class StreamingFederation {
   apply(compiler) {
     // When used with Next.js, context is needed to use Next.js webpack
     const { webpack } = this.context;
+    const { buildTime, runtime } = buildRemotes(this.options);
 
+    new ((webpack && webpack.DefinePlugin) || require("webpack").DefinePlugin)({
+      "process.env.REMOTES": runtime,
+    }).apply(compiler);
     new ((webpack && webpack.container.ModuleFederationPlugin) ||
       require("webpack/lib/container/ModuleFederationPlugin"))({
       ...this.options,
-      remotes: buildRemotes(this.options),
+      remotes: buildTime,
     }).apply(compiler);
   }
 }
