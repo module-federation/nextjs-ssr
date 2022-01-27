@@ -3,7 +3,7 @@
   "name": "@module-federation/nextjs-ssr",
   "version": "0.0.1-beta.12",
   "description": "Module Federation CSR & SSR Support for Next.js",
-  "main": "bundle.js",
+  "main": "load.js",
   "types": "index.d.ts",
   "repository": "https://github.com/module-federation/nextjs-ssr",
   "author": "Zack Jackson <zackary.l.jackson@gmail.com>",
