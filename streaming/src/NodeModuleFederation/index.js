@@ -25,7 +25,7 @@ const executeLoadTemplate = `
 const processRemoteLoadTemplate = (mfConfig) => `
     function processRemoteLoad(remote, name, path) {
         return {
-        get:(request)=> remote.get(request)
+        get:(request)=> remote.get(request),
         chunkMap: remote.chunkMap,
         path: path,
         init:(arg)=>{try {return remote.init({

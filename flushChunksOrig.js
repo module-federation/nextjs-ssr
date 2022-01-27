@@ -5,6 +5,7 @@ const loadableManifest = __non_webpack_require__(
 
 const flushChunksOrig = async () => {
   const remotes = {};
+  console.log(Object.keys(loadableManifest));
   try {
     const asyncChunks = Object.keys(loadableManifest).map(async (key) => {
       const [where, what] = key.split("->");
@@ -14,7 +15,11 @@ const flushChunksOrig = async () => {
           return request.startsWith(`${remoteKey}/`);
         }
       );
+      if(!foundFederatedImport) {
+        return null
+      }
       const remoteContainer = await process.env.REMOTES[foundFederatedImport]();
+      console.log(remoteContainer);
       const path = remoteContainer.path.split("@")[1];
       const [baseurl] = path.split("static/ssr");
       if (
