@@ -5,7 +5,6 @@ const loadableManifest = __non_webpack_require__(
 
 const flushChunksOrig = async () => {
   const remotes = {};
-  console.log(Object.keys(loadableManifest));
   try {
     const asyncChunks = Object.keys(loadableManifest).map(async (key) => {
       const [where, what] = key.split("->");
@@ -41,7 +40,7 @@ const flushChunksOrig = async () => {
                   new URL(chunk, baseurl).href
                 )
               ) {
-                loadableManifest[key].files.push(new URL(chunk, baseurl).href);
+                // loadableManifest[key].files.push(new URL(chunk, baseurl).href);
               }
             });
           });
