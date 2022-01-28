@@ -16,8 +16,9 @@ export default {
     commonjs(),
     globals({
       dirname: false,
+      process: false
     }),
     builtins(),
-    obfuscator(),
+    obfuscator()
   ],
 };
