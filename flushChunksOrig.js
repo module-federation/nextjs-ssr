@@ -47,7 +47,7 @@ const flushChunksOrig = async () => {
           });
         });
       } else {
-        console.warn("Module Federation:", "no federated modules in chunk map");
+        console.warn("Module Federation:", "no federated modules in chunk map OR experiments.flushChunks is disabled");
       }
     });
 
