@@ -224,12 +224,40 @@ module.exports = {
 Chunk Flushing is the mechanism used to _flush_ dynamic imported chunks out of a render and into the HTML of a document.
 If you want to SSR the `<script>` tags of federated imports, reducing Round Trip Time (RTT). You can enable the following experiment
 
-1. Inside `_document.js` do the following
+1. Enable the flushChunk experiment via the plugin
+
+```js
+withFederatedSidecar(
+  // normal MF config
+  {
+    name: "app1",
+    filename: "static/chunks/remoteEntry.js",
+    exposes: {},
+    remotes: {},
+    shared: {
+      react: {
+        requiredVersion: false,
+        singleton: true,
+      },
+    },
+  },
+  // sidecar specific options
+  {
+    experiments: {
+      flushChunks: true,
+    },
+  }
+);
+```
+
+2. Inside `_document.js` do the following
 
 ```js
 import Document, { Html, Head, Main, NextScript } from "next/document";
-// import chunk flushing mechanism from the package
-import flushChunks from "@module-federation/nextjs-ssr/flushChunks";
+import {
+  flushChunks,
+  ExtendedHead,
+} from "@module-federation/nextjs-ssr/flushChunks";
 
 class MyDocument extends Document {
   static async getInitialProps(ctx) {
@@ -237,7 +265,6 @@ class MyDocument extends Document {
 
     return {
       ...initialProps,
-      // await and return the flushed chunks
       remoteChunks: await flushChunks(),
     };
   }
@@ -245,11 +272,10 @@ class MyDocument extends Document {
   render() {
     return (
       <Html>
-        <Head>
+        <ExtendedHead>
           <meta name="robots" content="noindex" />
-          {/*render the prop in the Head component*/}
           {this.props.remoteChunks}
-        </Head>
+        </ExtendedHead>
         <body className="bg-background-grey">
           <Main />
           <NextScript />

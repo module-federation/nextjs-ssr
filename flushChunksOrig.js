@@ -1,5 +1,5 @@
 const React = require("react");
-const {Head} = require('next/document');
+const { Head } = require("next/document");
 const loadableManifest = __non_webpack_require__(
   "../../react-loadable-manifest.json"
 );
@@ -15,8 +15,8 @@ const flushChunks = async () => {
           return request.startsWith(`${remoteKey}/`);
         }
       );
-      if(!foundFederatedImport) {
-        return null
+      if (!foundFederatedImport) {
+        return null;
       }
       const remoteContainer = await process.env.REMOTES[foundFederatedImport]();
       const path = remoteContainer.path.split("@")[1];
@@ -46,7 +46,10 @@ const flushChunks = async () => {
           });
         });
       } else {
-        console.warn("Module Federation:", "no federated modules in chunk map OR experiments.flushChunks is disabled");
+        console.warn(
+          "Module Federation:",
+          "no federated modules in chunk map OR experiments.flushChunks is disabled"
+        );
       }
     });
 
@@ -65,12 +68,14 @@ export class ExtendedHead extends Head {
   getDynamicChunks(files) {
     const dynamicChunks = super.getDynamicChunks(files);
     return dynamicChunks.map((chunk) => {
-
       if (chunk.props.src.startsWith("/") && chunk.props.src.includes("http")) {
-        return React.cloneElement(chunk,{...chunk.props, src:`http${chunk.props.src.split("http")[1]}`})
+        return React.cloneElement(chunk, {
+          ...chunk.props,
+          src: `http${chunk.props.src.split("http")[1]}`,
+        });
       }
       return chunk;
     });
   }
 }
-module.exports = {flushChunks, ExtendedHead };
+module.exports = { flushChunks, ExtendedHead };

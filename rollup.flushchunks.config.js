@@ -2,7 +2,7 @@ import commonjs from "@rollup/plugin-commonjs";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import globals from "rollup-plugin-node-globals";
 import builtins from "rollup-plugin-node-builtins";
-import { obfuscator } from "rollup-obfuscator";
+import { terser } from "rollup-plugin-terser";
 
 export default {
   input: "flushChunksOrig.js",
@@ -16,8 +16,9 @@ export default {
     commonjs(),
     globals({
       dirname: false,
-      process: false
+      process: false,
     }),
     builtins(),
+    terser()
   ],
 };
