@@ -1,8 +1,10 @@
 const React = require("react");
-const { Head } = require("next/document");
-const requireMethod = __non_webpack_require__ ? __non_webpack_require__ : require
+const {Head} = require("next/document");
+const path = require('path');
+const requireMethod = typeof __non_webpack_require__ !== 'undefined' ? __non_webpack_require__ : require
+const requestPath = path.join(process.cwd(),'.next','server/pages','../../react-loadable-manifest.json')
 const loadableManifest = requireMethod(
-  "../../react-loadable-manifest.json"
+  requestPath
 );
 
 const flushChunks = async () => {
@@ -61,11 +63,13 @@ const flushChunks = async () => {
   }
   return [];
 };
+
 export class ExtendedHead extends Head {
   constructor(props, context) {
     super(props, context);
     this.context = context;
   }
+
   getDynamicChunks(files) {
     const dynamicChunks = super.getDynamicChunks(files);
     return dynamicChunks.map((chunk) => {
@@ -79,4 +83,5 @@ export class ExtendedHead extends Head {
     });
   }
 }
-module.exports = { flushChunks, ExtendedHead };
+
+module.exports = {flushChunks, ExtendedHead};
