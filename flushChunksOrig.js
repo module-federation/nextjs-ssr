@@ -1,9 +1,10 @@
-const { createElement } = require("react");
+const React = require("react");
+const {Head} = require('next/document');
 const loadableManifest = __non_webpack_require__(
   "../../react-loadable-manifest.json"
 );
 
-const flushChunksOrig = async () => {
+const flushChunks = async () => {
   const remotes = {};
   try {
     const asyncChunks = Object.keys(loadableManifest).map(async (key) => {
@@ -18,7 +19,6 @@ const flushChunksOrig = async () => {
         return null
       }
       const remoteContainer = await process.env.REMOTES[foundFederatedImport]();
-      console.log(remoteContainer);
       const path = remoteContainer.path.split("@")[1];
       const [baseurl] = path.split("static/ssr");
       if (
@@ -27,7 +27,7 @@ const flushChunksOrig = async () => {
         remoteContainer.chunkMap.federatedModules
       ) {
         remoteContainer.chunkMap.federatedModules.map((federatedRemote) => {
-          remotes[federatedRemote.remote] = createElement("script", {
+          remotes[federatedRemote.remote] = React.createElement("script", {
             "data-webpack": federatedRemote.remote,
             src: path.replace("ssr", "chunks"),
             async: true,
@@ -40,7 +40,7 @@ const flushChunksOrig = async () => {
                   new URL(chunk, baseurl).href
                 )
               ) {
-                // loadableManifest[key].files.push(new URL(chunk, baseurl).href);
+                loadableManifest[key].files.push(new URL(chunk, baseurl).href);
               }
             });
           });
@@ -57,5 +57,20 @@ const flushChunksOrig = async () => {
   }
   return [];
 };
+export class ExtendedHead extends Head {
+  constructor(props, context) {
+    super(props, context);
+    this.context = context;
+  }
+  getDynamicChunks(files) {
+    const dynamicChunks = super.getDynamicChunks(files);
+    return dynamicChunks.map((chunk) => {
 
-module.exports = flushChunksOrig;
+      if (chunk.props.src.startsWith("/") && chunk.props.src.includes("http")) {
+        return React.cloneElement(chunk,{...chunk.props, src:`http${chunk.props.src.split("http")[1]}`})
+      }
+      return chunk;
+    });
+  }
+}
+module.exports = {flushChunks, ExtendedHead };

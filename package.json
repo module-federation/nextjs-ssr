@@ -21,10 +21,12 @@
     "chalk": "4.1.2",
     "webpack-federated-stats-plugin": "2.0.8"
   },
+  "peerDependencies": {
+    "next": "^12.0.0"
+  },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^21.0.1",
     "@rollup/plugin-node-resolve": "^13.1.3",
-    "next": "12.0.7",
     "node-fetch": "^3.1.1",
     "prettier": "2.3.2",
     "rollup": "^2.64.0",
