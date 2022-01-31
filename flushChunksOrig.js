@@ -1,6 +1,7 @@
 const React = require("react");
 const { Head } = require("next/document");
-const loadableManifest = __non_webpack_require__(
+const requireMethod = __non_webpack_require__ ? __non_webpack_require__ : require
+const loadableManifest = requireMethod(
   "../../react-loadable-manifest.json"
 );
 
