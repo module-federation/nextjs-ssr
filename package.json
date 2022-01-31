@@ -1,7 +1,7 @@
 {
   "public": true,
   "name": "@module-federation/nextjs-ssr",
-  "version": "0.0.1-beta.12",
+  "version": "0.0.1-beta.13",
   "description": "Module Federation CSR & SSR Support for Next.js",
   "main": "load.js",
   "types": "index.d.ts",
@@ -33,6 +33,7 @@
     "rollup-obfuscator": "^2.0.0",
     "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-node-globals": "^1.4.0",
+    "rollup-plugin-terser": "^7.0.2",
     "webpack": "^5.65.0"
   }
 }
