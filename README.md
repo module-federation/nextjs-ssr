@@ -265,7 +265,7 @@ class MyDocument extends Document {
 
     return {
       ...initialProps,
-      remoteChunks: await flushChunks(),
+      remoteChunks: await flushChunks(process.env.REMOTES),
     };
   }
 
