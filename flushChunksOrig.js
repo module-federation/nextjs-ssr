@@ -1,23 +1,27 @@
 const React = require("react");
-const {Head} = require("next/document");
-const path = require('path');
-const requireMethod = typeof __non_webpack_require__ !== 'undefined' ? __non_webpack_require__ : require
-const requestPath = path.join(process.cwd(),'.next','server/pages','../../react-loadable-manifest.json')
-const loadableManifest = requireMethod(
-  requestPath
+const { Head } = require("next/document");
+const path = require("path");
+const requireMethod =
+  typeof __non_webpack_require__ !== "undefined"
+    ? __non_webpack_require__
+    : require;
+const requestPath = path.join(
+  process.cwd(),
+  ".next",
+  "server/pages",
+  "../../react-loadable-manifest.json"
 );
+const loadableManifest = requireMethod(requestPath);
 const flushChunks = async (remoteEnvVar = process.env.REMOTES) => {
-  const remoteKeys = Object.keys(remoteEnvVar)
+  const remoteKeys = Object.keys(remoteEnvVar);
   const remotes = {};
   try {
     for (const key in loadableManifest) {
       const [where, what] = key.split("->");
       const request = what.trim();
-      const foundFederatedImport = remoteKeys.find(
-        (remoteKey) => {
-          return request.startsWith(`${remoteKey}/`);
-        }
-      );
+      const foundFederatedImport = remoteKeys.find((remoteKey) => {
+        return request.startsWith(`${remoteKey}/`);
+      });
       if (!foundFederatedImport) {
         return null;
       }
@@ -34,6 +38,7 @@ const flushChunks = async (remoteEnvVar = process.env.REMOTES) => {
             "data-webpack": federatedRemote.remote,
             src: path.replace("ssr", "chunks"),
             async: true,
+            key: federatedRemote.remote,
           });
           const request = `.${what.split(foundFederatedImport)[1]}`;
           federatedRemote.exposes[request].forEach((remoteChunks) => {
@@ -54,7 +59,6 @@ const flushChunks = async (remoteEnvVar = process.env.REMOTES) => {
           "no federated modules in chunk map OR experiments.flushChunks is disabled"
         );
       }
-
     }
     return Object.values(remotes);
   } catch (e) {
@@ -83,4 +87,4 @@ export class ExtendedHead extends Head {
   }
 }
 
-module.exports = {flushChunks, ExtendedHead};
+module.exports = { flushChunks, ExtendedHead };
