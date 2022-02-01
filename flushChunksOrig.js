@@ -6,14 +6,14 @@ const requestPath = path.join(process.cwd(),'.next','server/pages','../../react-
 const loadableManifest = requireMethod(
   requestPath
 );
-
-const flushChunks = async () => {
+const flushChunks = async (remoteEnvVar = process.env.REMOTES) => {
+  const remoteKeys = Object.keys(remoteEnvVar)
   const remotes = {};
   try {
-    const asyncChunks = Object.keys(loadableManifest).map(async (key) => {
+    for (const key in loadableManifest) {
       const [where, what] = key.split("->");
       const request = what.trim();
-      const foundFederatedImport = Object.keys(process.env.REMOTES).find(
+      const foundFederatedImport = remoteKeys.find(
         (remoteKey) => {
           return request.startsWith(`${remoteKey}/`);
         }
@@ -21,7 +21,7 @@ const flushChunks = async () => {
       if (!foundFederatedImport) {
         return null;
       }
-      const remoteContainer = await process.env.REMOTES[foundFederatedImport]();
+      const remoteContainer = await remoteEnvVar[foundFederatedImport]();
       const path = remoteContainer.path.split("@")[1];
       const [baseurl] = path.split("static/ssr");
       if (
@@ -54,9 +54,8 @@ const flushChunks = async () => {
           "no federated modules in chunk map OR experiments.flushChunks is disabled"
         );
       }
-    });
 
-    await Promise.all(asyncChunks);
+    }
     return Object.values(remotes);
   } catch (e) {
     console.error("Module Federation: Could not flush chunks", e);
