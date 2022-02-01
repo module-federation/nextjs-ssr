@@ -187,11 +187,21 @@ module.exports = withFederatedSidecar({
     },
   },
 })({
-  // your original next.config.js export
+  webpack(config, options) {
+    // your original next.config.js export
+
+    // we attach next internals to share scope at runtime
+    config.module.rules.push({
+      test: /pages\/_app.[jt]sx?/,
+      loader: "@module-federation/nextjs-ssr/lib/federation-loader.js",
+    });
+
+    return config;
+  },
 });
 ```
 
-2. For the consuming/host applications you must add the loader to next.config.js, and ensure you have a [custom Next.js App](https://nextjs.org/docs/advanced-features/custom-app) `pages/_app.js` (or `.tsx`):
+Consuming/host applications you must at least add the loader to next.config.js, and ensure you have a [custom Next.js App](https://nextjs.org/docs/advanced-features/custom-app) `pages/_app.js` (or `.tsx`):
 
 ```js
 module.exports = {
@@ -205,6 +215,77 @@ module.exports = {
     return config;
   },
 };
+```
+
+### Experiments
+
+**Chunk Flushing**
+
+Chunk Flushing is the mechanism used to _flush_ dynamic imported chunks out of a render and into the HTML of a document.
+If you want to SSR the `<script>` tags of federated imports, reducing Round Trip Time (RTT). You can enable the following experiment
+
+1. Enable the flushChunk experiment via the plugin
+
+```js
+withFederatedSidecar(
+  // normal MF config
+  {
+    name: "app1",
+    filename: "static/chunks/remoteEntry.js",
+    exposes: {},
+    remotes: {},
+    shared: {
+      react: {
+        requiredVersion: false,
+        singleton: true,
+      },
+    },
+  },
+  // sidecar specific options
+  {
+    experiments: {
+      flushChunks: true,
+    },
+  }
+);
+```
+
+2. Inside `_document.js` do the following
+
+```js
+import Document, { Html, Head, Main, NextScript } from "next/document";
+import {
+  flushChunks,
+  ExtendedHead,
+} from "@module-federation/nextjs-ssr/flushChunks";
+
+class MyDocument extends Document {
+  static async getInitialProps(ctx) {
+    const initialProps = await Document.getInitialProps(ctx);
+
+    return {
+      ...initialProps,
+      remoteChunks: await flushChunks(process.env.REMOTES),
+    };
+  }
+
+  render() {
+    return (
+      <Html>
+        <ExtendedHead>
+          <meta name="robots" content="noindex" />
+          {this.props.remoteChunks}
+        </ExtendedHead>
+        <body className="bg-background-grey">
+          <Main />
+          <NextScript />
+        </body>
+      </Html>
+    );
+  }
+}
+
+export default MyDocument;
 ```
 
 ## Support and Maintenance

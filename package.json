@@ -1,7 +1,7 @@
 {
   "public": true,
   "name": "@module-federation/nextjs-ssr",
-  "version": "0.0.1-beta.12",
+  "version": "0.0.1-beta.21",
   "description": "Module Federation CSR & SSR Support for Next.js",
   "main": "load.js",
   "types": "index.d.ts",
@@ -10,8 +10,9 @@
   "license": "MIT",
   "scripts": {
     "prettier": "prettier --write \"**/*.{js,json,md,ts,tsx}\"",
-    "build": "rollup --config rollup.config.js && bytenode --compile bundle.js && mv bundle.jsc compiled.jsc",
-    "postinstall": "bytenode --compile bundle.js && mv bundle.jsc compiled.jsc && rm bundle.js"
+    "build": "rollup --config rollup.config.js && rollup --config rollup.flushchunks.config.js && bytenode --compile bundle.js && mv bundle.jsc compiled.jsc",
+    "postinstall": "bytenode --compile bundle.js && mv bundle.jsc compiled.jsc && rm bundle.js",
+    "prepublishOnly": "yarn build"
   },
   "publishConfig": {
     "registry": "https://r.privjs.com"
@@ -19,18 +20,21 @@
   "dependencies": {
     "bytenode": "^1.3.4",
     "chalk": "4.1.2",
-    "webpack-federated-stats-plugin": "2.0.8"
+    "webpack-federated-stats-plugin": "^2.0.8"
+  },
+  "peerDependencies": {
+    "next": "^12.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^21.0.1",
     "@rollup/plugin-node-resolve": "^13.1.3",
-    "next": "12.0.7",
     "node-fetch": "^3.1.1",
     "prettier": "2.3.2",
     "rollup": "^2.64.0",
     "rollup-obfuscator": "^2.0.0",
     "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-node-globals": "^1.4.0",
+    "rollup-plugin-terser": "^7.0.2",
     "webpack": "^5.65.0"
   }
 }
