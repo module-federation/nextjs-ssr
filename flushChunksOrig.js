@@ -81,6 +81,13 @@ export class ExtendedHead extends Head {
           ...chunk.props,
           src: `http${chunk.props.src.split("http")[1]}`,
         });
+      } else if (chunk.props.src.includes('-fed') && this.context.assetPrefix) {
+        const replacedArg =  this.context.assetPrefix.endsWith('/') ? chunk.props.src.replace(`${this.context.assetPrefix}/_next/`,''):  chunk.props.src.replace(`${this.context.assetPrefix}_next/`,'')
+        return React.cloneElement(chunk, {
+          ...chunk.props,
+          src: replacedArg,
+        });
+
       }
       return chunk;
     });
