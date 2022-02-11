@@ -64,25 +64,34 @@ function buildRemotes(mfConf) {
       })`;
       acc.runtime[name] = `()=> ${template}`;
       acc.buildTime[name] = `promise ${template}`;
+      acc.hot[name] = `"${config}"`;
       return acc;
     },
-    { runtime: {}, buildTime: {} }
+    { runtime: {}, buildTime: {}, hot: {} }
   );
 }
 
 class StreamingFederation {
-  constructor(options, context) {
+  constructor({ experiments, ...options }, context) {
     this.options = options || {};
     this.context = context || {};
+    this.experiments = experiments || {};
   }
   apply(compiler) {
     // When used with Next.js, context is needed to use Next.js webpack
     const { webpack } = this.context;
-    const { buildTime, runtime } = buildRemotes(this.options);
-
-    new ((webpack && webpack.DefinePlugin) || require("webpack").DefinePlugin)({
+    const { buildTime, runtime, hot } = buildRemotes(this.options);
+    const defs = {
       "process.env.REMOTES": runtime,
-    }).apply(compiler);
+    };
+    if (this.experiments.hot) {
+      Object.assign(defs, {
+        "process.env.REMOTE_CONFIG": hot,
+      });
+    }
+    new ((webpack && webpack.DefinePlugin) || require("webpack").DefinePlugin)(
+      defs
+    ).apply(compiler);
     new ((webpack && webpack.container.ModuleFederationPlugin) ||
       require("webpack/lib/container/ModuleFederationPlugin"))({
       ...this.options,
