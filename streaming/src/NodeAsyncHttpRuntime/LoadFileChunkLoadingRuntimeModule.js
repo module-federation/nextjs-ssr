@@ -84,6 +84,7 @@ class ReadFileChunkLoadingRuntimeModule extends RuntimeModule {
           ])
         : "// no baseURI",
       "",
+      `// var nonsense = ${Date.now()}`,
       "// object to store loaded chunks",
       '// "0" means "already loaded", Promise means loading',
       "var installedChunks = {",

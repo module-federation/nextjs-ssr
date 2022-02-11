@@ -84,6 +84,7 @@ class StreamingFederation {
     const defs = {
       "process.env.REMOTES": runtime,
     };
+    console.log(webpack, compiler);
     if (this.experiments.hot) {
       Object.assign(defs, {
         "process.env.REMOTE_CONFIG": hot,
