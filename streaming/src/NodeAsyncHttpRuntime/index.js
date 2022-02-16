@@ -29,10 +29,6 @@ class NodeSoftwareStreamRuntime {
     }).apply(compiler);
     new (webpack?.node.NodeTargetPlugin ||
       require("webpack/lib/node/NodeTargetPlugin"))().apply(compiler);
-    console.log(
-      compiler.options.output.publicPath,
-      this.options.promiseBaseURI
-    );
     new CommonJsChunkLoadingPlugin(
       {
         asyncChunkLoading: true,
