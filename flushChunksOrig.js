@@ -68,7 +68,7 @@ const flushChunks = async (remoteEnvVar = process.env.REMOTES) => {
   }
   return [];
 };
-
+let flushStamp
 export class ExtendedHead extends Head {
   constructor(props, context) {
     super(props, context);
@@ -83,7 +83,7 @@ export class ExtendedHead extends Head {
       if (chunk.props.src.startsWith("/") && chunk.props.src.includes("http")) {
         return React.cloneElement(chunk, {
           ...chunk.props,
-          src: `http${chunk.props.src.split("http")[1]}`,
+          src: `http${chunk.props.src.split("http")[1]}`.replace('stamp',flushStamp),
         });
       } else if (chunk.props.src.includes("-fed") && this.context.assetPrefix) {
         const replacedArg = this.context.assetPrefix.endsWith("/")
@@ -137,9 +137,16 @@ const revalidate = ()=>{
           });
       }
     }).then(()=>{
-      Object.keys(__non_webpack_require__.cache).forEach((k) => {
+      flushStamp = Date.now()
+      let req
+      if(typeof __non_webpack_require__ === 'undefined') {
+        req = require
+      } else {
+        req = __non_webpack_require__
+      }
+      Object.keys(req.cache).forEach((k) => {
         if(k.includes('remote') || k.includes('runtime') ||  k.includes('server')) {
-          delete __non_webpack_require__.cache[k];
+          delete req.cache[k];
         }
       })
     })

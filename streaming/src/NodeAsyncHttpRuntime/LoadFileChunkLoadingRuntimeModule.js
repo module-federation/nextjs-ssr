@@ -160,7 +160,7 @@ class ReadFileChunkLoadingRuntimeModule extends RuntimeModule {
                           loadScriptTemplate,
                           `;
                           var remotes = ${JSON.stringify(remotes)};
-                          var requestedRemote = remotes['${name}'];
+                          var requestedRemote = remotes['${name}'] || global.REMOTE_CONFIG['${name}']
                           console.log('requested remote', requestedRemote);
                           var scriptUrl = new URL(requestedRemote.split("@")[1]);
                           var chunkName = ${
