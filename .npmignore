@@ -9,3 +9,4 @@ user.json
 grantAccess.js
 flushChunksOrig.js
 rollup.flushchunks.config.js
+.npmrc

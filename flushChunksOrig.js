@@ -1,6 +1,8 @@
 const React = require("react");
 const { Head } = require("next/document");
 const path = require("path");
+const crypto = require("crypto")
+
 const requireMethod =
   typeof __non_webpack_require__ !== "undefined"
     ? __non_webpack_require__
@@ -97,4 +99,51 @@ export class ExtendedHead extends Head {
   }
 }
 
-module.exports = { flushChunks, ExtendedHead };
+const hashmap = {}
+const revalidate = ()=>{
+  if (global.REMOTE_CONFIG) {
+    new Promise(res => {
+      console.log("fetching remote again")
+      for (const property in global.REMOTE_CONFIG) {
+        const [name, url] = global.REMOTE_CONFIG[property].split("@");
+        fetch(url)
+          .then((re) => re.text())
+          .then((contents) => {
+            var hash = crypto
+              .createHash("md5")
+              .update(contents)
+              .digest("hex");
+
+            if (hashmap[name]) {
+              if (hashmap[name] !== hash) {
+                console.log(
+                  name,
+                  "hash is different - must hot reload server"
+                );
+                res();
+              }
+            } else {
+              hashmap[name] = hash;
+            }
+          })
+          .catch((e) => {
+            console.log(
+              "Remote",
+              name,
+              url,
+              "Failed to load or is not online",
+              e
+            );
+          });
+      }
+    }).then(()=>{
+      Object.keys(__non_webpack_require__.cache).forEach((k) => {
+        if(k.includes('remote') || k.includes('runtime') ||  k.includes('server')) {
+          delete __non_webpack_require__.cache[k];
+        }
+      })
+    })
+  }
+}
+
+module.exports = { flushChunks, ExtendedHead, revalidate };
