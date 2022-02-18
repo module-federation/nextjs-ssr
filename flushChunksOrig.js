@@ -17,6 +17,30 @@ const loadableManifest = requireMethod(requestPath);
 const flushChunks = async (remoteEnvVar = process.env.REMOTES) => {
   const remoteKeys = Object.keys(remoteEnvVar);
   const remotes = {};
+  const preload = [];
+
+  for (const key in remoteEnvVar) {
+    const remoteContainer = await remoteEnvVar[key]();
+    if (
+      remoteContainer &&
+      remoteContainer.chunkMap &&
+      remoteContainer.chunkMap.federatedModules
+    ) {
+      remoteContainer.chunkMap.federatedModules.forEach((federatedRemote) => {
+        Object.keys(federatedRemote.exposes).forEach(m => {
+          preload.push(remoteContainer.get(m).then((f)=>{
+            try {
+              return f()
+            } catch(e) {
+
+            }
+          }))
+        })
+      })
+      }
+  }
+  const preloaded = await Promise.all(preload)
+
   try {
     for (const key in loadableManifest) {
       const [where, what] = key.split("->");
@@ -28,6 +52,7 @@ const flushChunks = async (remoteEnvVar = process.env.REMOTES) => {
         return null;
       }
       const remoteContainer = await remoteEnvVar[foundFederatedImport]();
+
       const path = remoteContainer.path.split("@")[1];
       const [baseurl] = path.split("static/ssr");
       if (
@@ -44,6 +69,7 @@ const flushChunks = async (remoteEnvVar = process.env.REMOTES) => {
           });
           const request = `.${what.split(foundFederatedImport)[1]}`;
           federatedRemote.exposes[request].forEach((remoteChunks) => {
+
             remoteChunks.chunks.map((chunk) => {
               if (
                 !loadableManifest[key].files.includes(
@@ -68,7 +94,6 @@ const flushChunks = async (remoteEnvVar = process.env.REMOTES) => {
   }
   return [];
 };
-let flushStamp
 export class ExtendedHead extends Head {
   constructor(props, context) {
     super(props, context);
@@ -83,7 +108,7 @@ export class ExtendedHead extends Head {
       if (chunk.props.src.startsWith("/") && chunk.props.src.includes("http")) {
         return React.cloneElement(chunk, {
           ...chunk.props,
-          src: `http${chunk.props.src.split("http")[1]}`.replace('stamp',flushStamp),
+          src: `http${chunk.props.src.split("http")[1]}`,
         });
       } else if (chunk.props.src.includes("-fed") && this.context.assetPrefix) {
         const replacedArg = this.context.assetPrefix.endsWith("/")
@@ -137,16 +162,19 @@ const revalidate = ()=>{
           });
       }
     }).then(()=>{
-      flushStamp = Date.now()
       let req
       if(typeof __non_webpack_require__ === 'undefined') {
         req = require
       } else {
         req = __non_webpack_require__
       }
+      if(global.hotLoad) {
+        global.hotLoad()
+      }
       Object.keys(req.cache).forEach((k) => {
         if(k.includes('remote') || k.includes('runtime') ||  k.includes('server')) {
           delete req.cache[k];
+          // require(k);
         }
       })
     })

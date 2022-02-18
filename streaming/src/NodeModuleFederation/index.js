@@ -23,28 +23,35 @@ const executeLoadTemplate = `
 `;
 
 const processRemoteLoadTemplate = (mfConfig) => `
-    function processRemoteLoad(remote, name, path) {
-        return {
-        get:(request)=> remote.get(request),
+  function processRemoteLoad(remote, name, path) {
+     return Promise.all(Object.keys(remote.chunkMap.federatedModules[0].exposes).map(c=>{
+        return remote.get(c).then(f=>{
+          try {f()} catch(e) {}
+        })
+     })).then(()=>{
+        const prox= {
+        get: remote.get,
         chunkMap: remote.chunkMap,
         path: path,
         init:(arg)=>{try {return remote.init({
             ...arg,
             ${Object.keys(mfConfig.shared || {})
-              .filter(
-                (item) =>
-                  mfConfig.shared[item].singleton &&
-                  mfConfig.shared[item].requiredVersion
-              )
-              .map(function (item) {
-                return `"${item}": {
+  .filter(
+    (item) =>
+      mfConfig.shared[item].singleton &&
+      mfConfig.shared[item].requiredVersion
+  )
+  .map(function (item) {
+    return `"${item}": {
                       ["${mfConfig.shared[item].requiredVersion}"]: {
                         get: () => Promise.resolve().then(() => () => require("${item}"))
                       }
                   }`;
-              })
-              .join(",")}
+  })
+  .join(",")}
         })} catch(e){console.log('remote container already initialized')}}}
+        return prox
+     })
     }
 `;
 
@@ -58,9 +65,15 @@ function buildRemotes(mfConf) {
     (acc, [name, config]) => {
       const template = `new Promise(function(res) {
         ${builtinsTemplate}
-        res(executeLoad("${config}").then(function(remote){return processRemoteLoad(remote,${JSON.stringify(
+        global.loadedRemotes = global.loadedRemotes || {};
+        if(global.loadedRemotes[${JSON.stringify(name)}]) {
+          res(global.loadedRemotes[${JSON.stringify(name)}])
+        return 
+        }
+        global.loadedRemotes[${JSON.stringify(name)}] = executeLoad("${config}").then(function(remote){return processRemoteLoad(remote,${JSON.stringify(
         name
-      )},"${config}")}))
+      )},"${config}")})
+      res(global.loadedRemotes[${JSON.stringify(name)}])
       })`;
       acc.runtime[name] = `()=> ${template}`;
       acc.buildTime[name] = `promise ${template}`;

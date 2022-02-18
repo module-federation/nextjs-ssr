@@ -83,7 +83,6 @@ class ReadFileChunkLoadingRuntimeModule extends RuntimeModule {
             });`,
           ])
         : "// no baseURI",
-      "",
       `// var nonsense = ${Date.now()}`,
       "// object to store loaded chunks",
       '// "0" means "already loaded", Promise means loading',
@@ -169,12 +168,12 @@ class ReadFileChunkLoadingRuntimeModule extends RuntimeModule {
                           var fileToReplace = require('path').basename(scriptUrl.pathname);
                           scriptUrl.pathname = scriptUrl.pathname.replace(fileToReplace, chunkName);
                     
-                          console.log('remote chunk url', scriptUrl.toString());
+                          console.log('remote chunk url', scriptUrl.toString() + '?' + Date.now());
                           `,
                           `console.log('${promiseBaseURI}','${baseURI}', ${JSON.stringify(
                             remotes
                           )}, '${name}');`,
-                          `loadScript(scriptUrl.toString(), function(err, content) {`,
+                          `loadScript(scriptUrl.toString() + '?' + Date.now(), function(err, content) {`,
                           Template.indent([
                             "if(err) return reject(err);",
                             "var chunk = {};",
