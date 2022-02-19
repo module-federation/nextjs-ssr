@@ -9,7 +9,6 @@ export default `
         if (typeof cb !== "function") {
             throw new Error("last argument should be a function");
         }
-        console.log(arguments[1], arguments[0]); 
         if (arguments.length === 2) {
             url = arguments[0];
         } else if (arguments.length === 3) {

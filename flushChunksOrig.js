@@ -1,7 +1,7 @@
 const React = require("react");
 const { Head } = require("next/document");
 const path = require("path");
-const crypto = require("crypto")
+const crypto = require("crypto");
 
 const requireMethod =
   typeof __non_webpack_require__ !== "undefined"
@@ -27,19 +27,19 @@ const flushChunks = async (remoteEnvVar = process.env.REMOTES) => {
       remoteContainer.chunkMap.federatedModules
     ) {
       remoteContainer.chunkMap.federatedModules.forEach((federatedRemote) => {
-        Object.keys(federatedRemote.exposes).forEach(m => {
-          preload.push(remoteContainer.get(m).then((f)=>{
-            try {
-              return f()
-            } catch(e) {
-
-            }
-          }))
-        })
-      })
-      }
+        Object.keys(federatedRemote.exposes).forEach((m) => {
+          preload.push(
+            remoteContainer.get(m).then((f) => {
+              try {
+                return f();
+              } catch (e) {}
+            })
+          );
+        });
+      });
+    }
   }
-  const preloaded = await Promise.all(preload)
+  const preloaded = await Promise.all(preload);
 
   try {
     for (const key in loadableManifest) {
@@ -48,46 +48,50 @@ const flushChunks = async (remoteEnvVar = process.env.REMOTES) => {
       const foundFederatedImport = remoteKeys.find((remoteKey) => {
         return request.startsWith(`${remoteKey}/`);
       });
-      if (!foundFederatedImport) {
-        return null;
-      }
-      const remoteContainer = await remoteEnvVar[foundFederatedImport]();
-
-      const path = remoteContainer.path.split("@")[1];
-      const [baseurl] = path.split("static/ssr");
-      if (
-        remoteContainer &&
-        remoteContainer.chunkMap &&
-        remoteContainer.chunkMap.federatedModules
-      ) {
-        remoteContainer.chunkMap.federatedModules.map((federatedRemote) => {
-          remotes[federatedRemote.remote] = React.createElement("script", {
-            "data-webpack": federatedRemote.remote,
-            src: path.replace("ssr", "chunks"),
-            async: true,
-            key: federatedRemote.remote,
-          });
-          const request = `.${what.split(foundFederatedImport)[1]}`;
-          federatedRemote.exposes[request].forEach((remoteChunks) => {
-
-            remoteChunks.chunks.map((chunk) => {
-              if (
-                !loadableManifest[key].files.includes(
-                  new URL(chunk, baseurl).href
-                )
-              ) {
-                loadableManifest[key].files.push(new URL(chunk, baseurl).href);
-              }
+      if (foundFederatedImport) {
+        const remoteContainer = await remoteEnvVar[foundFederatedImport]();
+        const [name, path] = remoteContainer.path.split("@");
+        const remoteUrl = new URL(path.replace("ssr", "chunks"));
+        remoteUrl.searchParams.set("cbust", Date.now());
+        remotes[name] = React.createElement("script", {
+          "data-webpack": name,
+          src: remoteUrl.toString(),
+          async: true,
+          key: name,
+        });
+        if (
+          remoteContainer &&
+          remoteContainer.chunkMap &&
+          remoteContainer.chunkMap.federatedModules
+        ) {
+          const path = remoteContainer.path.split("@")[1];
+          const [baseurl] = path.split("static/ssr");
+          remoteContainer.chunkMap.federatedModules.map((federatedRemote) => {
+            const inferRequest= what.split(`${foundFederatedImport}/`)[1]
+            const request = `./${inferRequest}`;
+            federatedRemote.exposes[request].forEach((remoteChunks) => {
+              remoteChunks.chunks.map((chunk) => {
+                if (
+                  !loadableManifest[key].files.includes(
+                    new URL(chunk, baseurl).href
+                  )
+                ) {
+                  loadableManifest[key].files.push(
+                    new URL(chunk, baseurl).href
+                  );
+                }
+              });
             });
           });
-        });
-      } else {
-        console.warn(
-          "Module Federation:",
-          "no federated modules in chunk map OR experiments.flushChunks is disabled"
-        );
+        } else {
+          console.warn(
+            "Module Federation:",
+            "no federated modules in chunk map OR experiments.flushChunks is disabled"
+          );
+        }
       }
     }
+
     return Object.values(remotes);
   } catch (e) {
     console.error("Module Federation: Could not flush chunks", e);
@@ -104,7 +108,7 @@ export class ExtendedHead extends Head {
     const dynamicChunks = super.getDynamicChunks(files);
 
     return dynamicChunks.map((chunk) => {
-      if(!chunk) return null
+      if (!chunk) return null;
       if (chunk.props.src.startsWith("/") && chunk.props.src.includes("http")) {
         return React.cloneElement(chunk, {
           ...chunk.props,
@@ -124,27 +128,21 @@ export class ExtendedHead extends Head {
   }
 }
 
-const hashmap = {}
-const revalidate = ()=>{
+const hashmap = {};
+const revalidate = () => {
   if (global.REMOTE_CONFIG) {
-    new Promise(res => {
-      console.log("fetching remote again")
+    new Promise((res) => {
+      console.log("fetching remote again");
       for (const property in global.REMOTE_CONFIG) {
         const [name, url] = global.REMOTE_CONFIG[property].split("@");
         fetch(url)
           .then((re) => re.text())
           .then((contents) => {
-            var hash = crypto
-              .createHash("md5")
-              .update(contents)
-              .digest("hex");
+            var hash = crypto.createHash("md5").update(contents).digest("hex");
 
             if (hashmap[name]) {
               if (hashmap[name] !== hash) {
-                console.log(
-                  name,
-                  "hash is different - must hot reload server"
-                );
+                console.log(name, "hash is different - must hot reload server");
                 res();
               }
             } else {
@@ -161,24 +159,28 @@ const revalidate = ()=>{
             );
           });
       }
-    }).then(()=>{
-      let req
-      if(typeof __non_webpack_require__ === 'undefined') {
-        req = require
+    }).then(() => {
+      let req;
+      if (typeof __non_webpack_require__ === "undefined") {
+        req = require;
       } else {
-        req = __non_webpack_require__
+        req = __non_webpack_require__;
       }
-      if(global.hotLoad) {
-        global.hotLoad()
+      if (global.hotLoad) {
+        global.hotLoad();
       }
       Object.keys(req.cache).forEach((k) => {
-        if(k.includes('remote') || k.includes('runtime') ||  k.includes('server')) {
+        if (
+          k.includes("remote") ||
+          k.includes("runtime") ||
+          k.includes("server")
+        ) {
           delete req.cache[k];
           // require(k);
         }
-      })
-    })
+      });
+    });
   }
-}
+};
 
 module.exports = { flushChunks, ExtendedHead, revalidate };
