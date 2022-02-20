@@ -160,20 +160,14 @@ class ReadFileChunkLoadingRuntimeModule extends RuntimeModule {
                           `;
                           var remotes = ${JSON.stringify(remotes)};
                           var requestedRemote = remotes['${name}'] || global.REMOTE_CONFIG['${name}']
-                          console.log('requested remote', requestedRemote);
                           var scriptUrl = new URL(requestedRemote.split("@")[1]);
                           var chunkName = ${
                             RuntimeGlobals.getChunkScriptFilename
                           }(chunkId);
                           var fileToReplace = require('path').basename(scriptUrl.pathname);
                           scriptUrl.pathname = scriptUrl.pathname.replace(fileToReplace, chunkName);
-                    
-                          console.log('remote chunk url', scriptUrl.toString() + '?' + Date.now());
                           `,
-                          `console.log('${promiseBaseURI}','${baseURI}', ${JSON.stringify(
-                            remotes
-                          )}, '${name}');`,
-                          `loadScript(scriptUrl.toString() + '?' + Date.now(), function(err, content) {`,
+                          `loadScript(scriptUrl.toString(), function(err, content) {`,
                           Template.indent([
                             "if(err) return reject(err);",
                             "var chunk = {};",
