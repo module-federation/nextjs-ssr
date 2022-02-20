@@ -116,7 +116,7 @@ export class ExtendedHead extends Head {
           ...chunk.props,
           href: `http${chunk.props.href.split("http")[1]}`,
         });
-      } else if (chunk.props.href && chunk.props.href.includes("-fed") && this.context.assetPrefix) {
+      } else if (chunk.props.href && chunk.props.href.includes("-fed.") && this.context.assetPrefix) {
         const replacedArg = this.context.assetPrefix.endsWith("/")
           ? chunk.props.href.replace(`${this.context.assetPrefix}_next/`, "")
           : chunk.props.href.replace(`${this.context.assetPrefix}/_next/`, "");
@@ -137,7 +137,7 @@ export class ExtendedHead extends Head {
           ...chunk.props,
           src: `http${chunk.props.src.split("http")[1]}`,
         });
-      } else if (chunk.props.src.includes("-fed") && this.context.assetPrefix) {
+      } else if (chunk.props.src.includes("-fed.") && this.context.assetPrefix) {
         const replacedArg = this.context.assetPrefix.endsWith("/")
           ? chunk.props.src.replace(`${this.context.assetPrefix}_next/`, "")
           : chunk.props.src.replace(`${this.context.assetPrefix}/_next/`, "");
