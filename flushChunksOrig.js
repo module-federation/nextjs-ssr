@@ -111,6 +111,7 @@ export class ExtendedHead extends Head {
     const cssLinks = super.getCssLinks(files);
     return cssLinks.map((chunk) => {
       if (!chunk) return null;
+      const [prefix,asset] = chunk.props.href.split(this.context.assetPrefix)
       if (chunk.props.href && chunk.props.href.startsWith("/") && chunk.props.href.includes("http")) {
         return React.cloneElement(chunk, {
           ...chunk.props,
@@ -124,7 +125,12 @@ export class ExtendedHead extends Head {
           ...chunk.props,
           href: replacedArg,
         });
-      }
+      } else if(asset.includes('http') && asset.startsWith('/')) {
+        return React.cloneElement(chunk, {
+          ...chunk.props,
+          href: `http${asset.split("http")[1]}`,
+        });
+      } else
       return chunk;
     });
   }
