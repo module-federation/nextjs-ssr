@@ -198,6 +198,7 @@ const revalidate = () => {
       if (global.hotLoad) {
         global.hotLoad();
       }
+      global.loadedRemotes = {};
       Object.keys(req.cache).forEach((k) => {
         if (
           k.includes("remote") ||
