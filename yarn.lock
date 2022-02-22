@@ -2119,10 +2119,10 @@ webidl-conversions@^3.0.0:
   resolved "https://registry.yarnpkg.com/webidl-conversions/-/webidl-conversions-3.0.1.tgz#24534275e2a7bc6be7bc86611cc16ae0a5654871"
   integrity sha1-JFNCdeKnvGvnvIZhHMFq4KVlSHE=
 
-webpack-federated-stats-plugin@^2.0.8:
-  version "2.0.8"
-  resolved "https://registry.yarnpkg.com/webpack-federated-stats-plugin/-/webpack-federated-stats-plugin-2.0.8.tgz#97bcffe885fa88411a387fbe059673fe405d0c17"
-  integrity sha512-N/lcCFS+GlF3r2Yi5i8tJM7iej3Z7OihzUquKlv98+1TArGATd7KP8h3uwcXuZ0Du+KMIFcbyXUoURqncJZpxA==
+webpack-federated-stats-plugin@^2.0.9:
+  version "2.0.9"
+  resolved "https://registry.yarnpkg.com/webpack-federated-stats-plugin/-/webpack-federated-stats-plugin-2.0.9.tgz#56255b5c6bdcfaadba3e6b88220ef46be65ef608"
+  integrity sha512-OtGDjmrVsrV0M5x74CMPW9As86Zsmaw+I6FN/2XpcufmiixyIKK8ryYCv+CCsxej4Qrc+CohhGSrAJO3nBa5PQ==
 
 webpack-sources@^3.2.3:
   version "3.2.3"
