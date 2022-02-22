@@ -22,47 +22,18 @@ const executeLoadTemplate = `
     }
 `;
 
-const processRemoteLoadTemplate = (mfConfig) => {
-  const shared = Object.keys(mfConfig.shared || {})
-    .filter(
-      (item) =>
-        mfConfig.shared[item].singleton && mfConfig.shared[item].requiredVersion
-    )
-    .map(function (item) {
-      return `"${item}": {
-                      ["${mfConfig.shared[item].requiredVersion}"]: {
-                        get: () => Promise.resolve(()=>require("${item}"))
-                      }
-                  }`;
-    })
-    .join(",");
-
-  return `function processRemoteLoad(remote, name, path) {
-
-        const prox= {
-          get: remote.get,
-          chunkMap: remote.chunkMap,
-          path: path,
-          init:(arg)=>{try {return remote.init({
-              ...arg,
-              ${shared}
-          })} catch(e){console.log('remote container already initialized')}}
-        }
-        return prox
-     
-    }
-`;
-};
-
-function buildRemotes(mfConf) {
+function buildRemotes(mfConf, webpack) {
   const builtinsTemplate = `
     ${executeLoadTemplate}
-    ${processRemoteLoadTemplate(mfConf)}
   `;
 
   return Object.entries(mfConf.remotes || {}).reduce(
     (acc, [name, config]) => {
-      const template = `new Promise(function(res) {
+      const template = `new Promise((res) => {
+           var ${webpack.RuntimeGlobals.require} = ${
+        webpack.RuntimeGlobals.require
+      } ? ${webpack.RuntimeGlobals.require} : arguments[2]
+     
         ${builtinsTemplate}
         global.loadedRemotes = global.loadedRemotes || {};
         if(global.loadedRemotes[${JSON.stringify(name)}]) {
@@ -71,10 +42,24 @@ function buildRemotes(mfConf) {
         }
         global.loadedRemotes[${JSON.stringify(
           name
-        )}] = executeLoad("${config}").then(function(remote){return processRemoteLoad(remote,${JSON.stringify(
-        name
-      )},"${config}")})
-      res(global.loadedRemotes[${JSON.stringify(name)}])
+        )}] = executeLoad("${config}").then(function(remote){
+        
+           const proxy= {
+            get: remote.get,
+            chunkMap: remote.chunkMap,
+            path: "${config}",
+            init:(arg)=>{try {
+            return remote.init({
+                ...arg,
+                ...${webpack.RuntimeGlobals.require}.default
+            })} catch(e){console.log('remote container already initialized')}}
+          }
+          Object.assign(global.loadedRemotes,{${JSON.stringify(name)}: proxy});
+     
+          return global.loadedRemotes[${JSON.stringify(name)}]
+        })
+
+        res(global.loadedRemotes[${JSON.stringify(name)}])
       })`;
       acc.runtime[name] = `()=> ${template}`;
       acc.buildTime[name] = `promise ${template}`;
@@ -94,7 +79,11 @@ class StreamingFederation {
   apply(compiler) {
     // When used with Next.js, context is needed to use Next.js webpack
     const { webpack } = this.context;
-    const { buildTime, runtime, hot } = buildRemotes(this.options);
+
+    const { buildTime, runtime, hot } = buildRemotes(
+      this.options,
+      webpack || require("webpack")
+    );
     const defs = {
       "process.env.REMOTES": runtime,
     };
