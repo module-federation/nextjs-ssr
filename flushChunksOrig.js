@@ -99,28 +99,6 @@ const flushChunks = async (remoteEnvVar = process.env.REMOTES) => {
   const remoteKeys = Object.keys(remoteEnvVar);
   const preload = [];
 
-  // for (const key in remoteEnvVar) {
-  //   const remoteContainer = await remoteEnvVar[key]();
-  //   if (
-  //     remoteContainer &&
-  //     remoteContainer.chunkMap &&
-  //     remoteContainer.chunkMap.federatedModules
-  //   ) {
-  //     remoteContainer.chunkMap.federatedModules.forEach((federatedRemote) => {
-  //       Object.keys(federatedRemote.exposes).forEach((m) => {
-  //         preload.push(
-  //           remoteContainer.get(m).then((f) => {
-  //             try {
-  //               return f();
-  //             } catch (e) {}
-  //           })
-  //         );
-  //       });
-  //     });
-  //   }
-  // }
-  // const preloaded = await Promise.all(preload);
-
   try {
     for (const key in loadableManifest) {
       const [where, what] = key.split("->");
