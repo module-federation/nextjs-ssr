@@ -74,7 +74,7 @@ requireMethod.cache[requestPath].exports = new Proxy(loadableManifest, {
         let remoteModuleContainerId
           Object.values(global.loadedRemotes).find((remote)=> {
           if(remote.chunkMap && remote.chunkMap.federatedModules[0] && remote.chunkMap.federatedModules[0].remoteModules) {
-            if(remote.chunkMap.federatedModules[0].remoteModules['checkout/title']) {
+            if(remote.chunkMap.federatedModules[0].remoteModules[remoteImport]) {
               remoteModuleContainerId = remote.chunkMap.federatedModules[0].remoteModules[remoteImport]
               return true
             }
