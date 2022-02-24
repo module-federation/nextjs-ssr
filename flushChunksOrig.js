@@ -56,14 +56,17 @@ const loadableManifest = requireMethod(requestPath);
 requireMethod.cache[requestPath].exports = new Proxy(loadableManifest, {
   get(target, prop, receiver) {
     if (!target[prop]) {
-      let remoteImport = prop.split("->")[1]
+      let remoteImport = prop.split("->")[1];
 
       if (remoteImport) {
         remoteImport = remoteImport.trim();
         const [remote, module] = remoteImport.split("/");
 
         if (!remotes[remote]) {
-          Object.assign(remotes,generateDynamicRemoteScript(global.loadedRemotes[remote]))
+          Object.assign(
+            remotes,
+            generateDynamicRemoteScript(global.loadedRemotes[remote])
+          );
         }
 
         const dynamicLoadableManifestItem = {
@@ -71,17 +74,24 @@ requireMethod.cache[requestPath].exports = new Proxy(loadableManifest, {
           files: [],
         };
         // TODO: figure out who is requesting module
-        let remoteModuleContainerId
-          Object.values(global.loadedRemotes).find((remote)=> {
-          if(remote.chunkMap && remote.chunkMap.federatedModules[0] && remote.chunkMap.federatedModules[0].remoteModules) {
-            if(remote.chunkMap.federatedModules[0].remoteModules[remoteImport]) {
-              remoteModuleContainerId = remote.chunkMap.federatedModules[0].remoteModules[remoteImport]
-              return true
+        let remoteModuleContainerId;
+        Object.values(global.loadedRemotes).find((remote) => {
+          if (
+            remote.chunkMap &&
+            remote.chunkMap.federatedModules[0] &&
+            remote.chunkMap.federatedModules[0].remoteModules
+          ) {
+            if (
+              remote.chunkMap.federatedModules[0].remoteModules[remoteImport]
+            ) {
+              remoteModuleContainerId =
+                remote.chunkMap.federatedModules[0].remoteModules[remoteImport];
+              return true;
             }
           }
-        })
-        if(remoteModuleContainerId) {
-          dynamicLoadableManifestItem.id = remoteModuleContainerId
+        });
+        if (remoteModuleContainerId) {
+          dynamicLoadableManifestItem.id = remoteModuleContainerId;
         }
         extractChunkCorrelation(
           global.loadedRemotes[remote],
@@ -95,7 +105,7 @@ requireMethod.cache[requestPath].exports = new Proxy(loadableManifest, {
   },
 });
 const flushChunks = async (remoteEnvVar = process.env.REMOTES) => {
-  remotes = {}
+  remotes = {};
   const remoteKeys = Object.keys(remoteEnvVar);
   const preload = [];
 
@@ -109,7 +119,10 @@ const flushChunks = async (remoteEnvVar = process.env.REMOTES) => {
       if (foundFederatedImport) {
         const remotePreload = remoteEnvVar[foundFederatedImport]().then(
           (remoteContainer) => {
-            Object.assign(remotes,generateDynamicRemoteScript(remoteContainer))
+            Object.assign(
+              remotes,
+              generateDynamicRemoteScript(remoteContainer)
+            );
 
             const inferRequest = what.split(`${foundFederatedImport}/`)[1];
             const request = `./${inferRequest}`;
@@ -124,7 +137,7 @@ const flushChunks = async (remoteEnvVar = process.env.REMOTES) => {
       }
     }
     await Promise.all(preload);
-    return remotes
+    return remotes;
   } catch (e) {
     console.error("Module Federation: Could not flush chunks", e);
   }

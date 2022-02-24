@@ -274,7 +274,8 @@ class MyDocument extends Document {
       <Html>
         <ExtendedHead>
           <meta name="robots" content="noindex" />
-          {this.props.remoteChunks}
+          {/* Object.values() MUST be called here, not in git initial props */}
+          {Object.values(this.props.remoteChunks)}
         </ExtendedHead>
         <body className="bg-background-grey">
           <Main />
@@ -286,6 +287,96 @@ class MyDocument extends Document {
 }
 
 export default MyDocument;
+```
+
+**Hot Reloadable Production Servers**
+
+When a remote is deployed, prod servers will hot reload. This solves the "stuck" modules problem once a federated module has been required.
+
+By default, revalidation will purge require cache. If you want to perform any additional actions, you can do so in the `then` parameter. 
+
+*You do not need to call any extra functions to hot reload*
+
+
+1. Enable the hot experiment via the plugin
+
+```js
+withFederatedSidecar(
+  // normal MF config
+  {
+    name: "app1",
+    filename: "static/chunks/remoteEntry.js",
+    exposes: {},
+    remotes: {},
+    shared: {
+      react: {
+        requiredVersion: false,
+        singleton: true,
+      },
+    },
+  },
+  // sidecar specific options
+  {
+    experiments: {
+      hot: true
+    },
+  }
+);
+```
+
+2. Inside `_document.js` do the following
+
+```js
+import Document, { Html, Head, Main, NextScript } from "next/document";
+import React from "react";
+import {
+  ExtendedHead,
+  revalidate,
+  flushChunks,
+  DevHotScript
+} from "@module-federation/nextjs-ssr/flushChunks";
+
+class MyDocument extends Document {
+  static async getInitialProps(ctx) {
+    ctx.res.on("finish", () => {
+      revalidate().then(()=>{
+        // choose any additional steps you want to take.
+        // the promise will only resolve if remotes have changed and a hot reload needs to happen
+        if(process.env.NODE_ENV === 'development') {
+          setTimeout(() => {
+            // useful for dev or if you want to cold start lambdas.
+            process.exit(1);
+          }, 50)
+        }
+      })
+    });
+    const remotes = await flushChunks(process.env.REMOTES);
+    const initialProps = await Document.getInitialProps(ctx);
+    return {
+      ...initialProps,
+      remoteChunks: remotes
+    };
+  }
+
+  render() {
+    return (
+      <Html>
+        <ExtendedHead>
+          <meta name="robots" content="noindex" />
+          {Object.values(this.props.remoteChunks)}
+        </ExtendedHead>
+        <DevHotScript/>
+        <body className="bg-background-grey">
+          <Main />
+          <NextScript />
+        </body>
+      </Html>
+    );
+  }
+}
+
+export default MyDocument;
+
 ```
 
 ## Support and Maintenance
