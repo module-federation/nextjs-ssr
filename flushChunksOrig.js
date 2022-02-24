@@ -90,7 +90,7 @@ requireMethod.cache[requestPath].exports = new Proxy(loadableManifest, {
             }
           }
         });
-        if (remoteModuleContainerId) {
+        if (remoteModuleContainerId && process.env.NODE_ENV !== 'development') {
           dynamicLoadableManifestItem.id = remoteModuleContainerId;
         }
         extractChunkCorrelation(
