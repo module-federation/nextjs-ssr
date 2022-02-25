@@ -7,7 +7,6 @@ const generateDynamicRemoteScript = (remoteContainer) => {
   const [name, path] = remoteContainer.path.split("@");
   const remoteUrl = new URL(path.replace("ssr", "chunks"));
   remoteUrl.searchParams.set("cbust", Date.now());
-  console.log(remoteUrl.toString());
   return {
     [name]: React.createElement("script", {
       "data-webpack": name,
