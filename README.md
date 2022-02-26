@@ -21,7 +21,7 @@ This is because of our proximity to the Webpack Foundation & deep understanding
 
 ### Supports
 
-- next ^11.x.x || ^12.x.x
+- next ^12.x.x
 - SSR & CSR
 
 ## What's shared by default?
