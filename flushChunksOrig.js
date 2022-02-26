@@ -272,7 +272,7 @@ const revalidate = () => {
     });
   }
 
-  return new Promise.reject();
+  return new Promise((res,rej)=>{})
 };
 
 const DevHotScript = () => {
