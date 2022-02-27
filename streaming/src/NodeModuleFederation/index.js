@@ -1,23 +1,24 @@
-import loadScriptTemplate from "../templates/loadScript";
 const executeLoadTemplate = `
-    ${loadScriptTemplate}
     function executeLoad(remoteUrl) {
         const scriptUrl = remoteUrl.split("@")[1];
         const moduleName = remoteUrl.split("@")[0];
         return new Promise(function (resolve, reject) {
         
-        fetch(scriptUrl).then(function(res){
-        return res.text()
-        }).then(function(scriptContent){
-        // const remote = eval(scriptContent + '\\n  try{' + moduleName + '}catch(e) { null; };');
-          try {
-            const remote = eval('let exports = {};' + scriptContent + 'exports')
-            resolve(remote[moduleName])
-          } catch(e) {
-            console.error('problem executing remote module', moduleName);
-            reject(e);
-          }
-        })
+          fetch(scriptUrl).then(function(res){
+            return res.text()
+          }).then(function(scriptContent){
+          // const remote = eval(scriptContent + '\\n  try{' + moduleName + '}catch(e) { null; };');
+            try {
+              const remote = eval('let exports = {};' + scriptContent + 'exports')
+              resolve(remote[moduleName])
+            } catch(e) {
+              console.error('problem executing remote module', moduleName);
+              reject(e);
+            }
+          }).catch((e)=>{
+            console.error('failed to fetch remote', moduleName, scriptUrl);
+            console.error(e);
+          })
         });
     }
 `;
