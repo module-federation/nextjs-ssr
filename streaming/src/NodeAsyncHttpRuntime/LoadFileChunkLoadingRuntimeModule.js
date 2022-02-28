@@ -166,7 +166,7 @@ class ReadFileChunkLoadingRuntimeModule extends RuntimeModule {
                           }(chunkId);
                           var fileToReplace = require('path').basename(scriptUrl.pathname);
                           scriptUrl.pathname = scriptUrl.pathname.replace(fileToReplace, chunkName);
-                          `,
+                          console.log('loading chunk', scriptUrl.toString());`,
                           `loadScript(scriptUrl.toString(), function(err, content) {`,
                           Template.indent([
                             "if(err) return reject(err);",
