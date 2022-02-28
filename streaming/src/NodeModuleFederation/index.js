@@ -31,16 +31,17 @@ function buildRemotes(mfConf, webpack) {
   return Object.entries(mfConf.remotes || {}).reduce(
     (acc, [name, config]) => {
       const template = `new Promise((res) => {
-           var ${webpack.RuntimeGlobals.require} = ${
+         var ${webpack.RuntimeGlobals.require} = ${
         webpack.RuntimeGlobals.require
       } ? ${webpack.RuntimeGlobals.require} : arguments[2]
-     
+
         ${builtinsTemplate}
         global.loadedRemotes = global.loadedRemotes || {};
         if(global.loadedRemotes[${JSON.stringify(name)}]) {
           res(global.loadedRemotes[${JSON.stringify(name)}])
         return 
         }
+     
         global.loadedRemotes[${JSON.stringify(
           name
         )}] = executeLoad("${config}").then(function(remote){
@@ -52,7 +53,6 @@ function buildRemotes(mfConf, webpack) {
             init:(arg)=>{try {
             return remote.init({
                 ...arg,
-                ...${webpack.RuntimeGlobals.require}.default
             })} catch(e){console.log('remote container already initialized')}}
           }
           Object.assign(global.loadedRemotes,{${JSON.stringify(name)}: proxy});
