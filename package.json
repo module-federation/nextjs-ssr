@@ -1,7 +1,7 @@
 {
   "public": true,
   "name": "@module-federation/nextjs-ssr",
-  "version": "0.0.3-beta.3",
+  "version": "0.0.4-beta.0",
   "description": "Module Federation CSR & SSR Support for Next.js",
   "main": "load.js",
   "types": "index.d.ts",
