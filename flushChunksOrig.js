@@ -231,6 +231,7 @@ const revalidate = () => {
 
             if (hashmap[name]) {
               if (hashmap[name] !== hash) {
+                hashmap[name] = hash;
                 console.log(name, "hash is different - must hot reload server");
                 res();
               }
@@ -266,7 +267,6 @@ const revalidate = () => {
           k.includes("server")
         ) {
           delete req.cache[k];
-          // require(k);
         }
       });
     });
