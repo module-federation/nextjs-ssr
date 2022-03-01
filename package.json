@@ -20,6 +20,7 @@
   "dependencies": {
     "bytenode": "^1.3.4",
     "chalk": "4.1.2",
+    "lodash.clonedeep": "^4.5.0",
     "webpack-federated-stats-plugin": "^2.0.9"
   },
   "peerDependencies": {
