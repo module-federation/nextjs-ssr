@@ -3,14 +3,17 @@ const executeLoadTemplate = `
         const scriptUrl = remoteUrl.split("@")[1];
         const moduleName = remoteUrl.split("@")[0];
         return new Promise(function (resolve, reject) {
-        
+        console.log('getting scropt',scriptUrl);
+     
           fetch(scriptUrl).then(function(res){
             return res.text()
           }).then(function(scriptContent){
-          // const remote = eval(scriptContent + '\\n  try{' + moduleName + '}catch(e) { null; };');
             try {
-              const remote = eval('let exports = {};' + scriptContent + 'exports')
-              resolve(remote[moduleName])
+              const remote = eval(scriptContent + '\\n  try{' + moduleName + '}catch(e) { null; };');
+              console.log('remote container', remote);
+
+              // const remote = eval('let exports = {};' + scriptContent + 'exports')
+              resolve(remote)
             } catch(e) {
               console.error('problem executing remote module', moduleName);
               reject(e);
@@ -31,10 +34,10 @@ function buildRemotes(mfConf, webpack) {
   return Object.entries(mfConf.remotes || {}).reduce(
     (acc, [name, config]) => {
       const template = `new Promise((res) => {
-           var requireFunction = ${
+           var requireFunction = ${webpack.RuntimeGlobals.require} ? ${
         webpack.RuntimeGlobals.require
-      } ? ${webpack.RuntimeGlobals.require} : arguments[2]
-     
+      } : arguments[2]
+     console.log('Server loading remote container', ${JSON.stringify(name)});
         ${builtinsTemplate}
 
         global.loadedRemotes = global.loadedRemotes || {};
@@ -47,15 +50,18 @@ function buildRemotes(mfConf, webpack) {
         global.loadedRemotes[${JSON.stringify(
           name
         )}] = executeLoad("${config}").then(function(remote){
-        var __webpack_require__ = requireFunction
-        Object.assign(${webpack.RuntimeGlobals.shareScopeMap}.default, {
-        react: global.__webpack_share_scopes__.default.react,
-        'next/link': global.__webpack_share_scopes__.default['next/link'],
-        'next/script': global.__webpack_share_scopes__.default['next/script'],
-        'next/router': global.__webpack_share_scopes__.default['next/router'],
-        'next/head': global.__webpack_share_scopes__.default['next/head'],
-        'next/dynamic': global.__webpack_share_scopes__.default['next/dynamic'],
-        })
+        
+        console.log(remote);
+        
+        // var __webpack_require__ = requireFunction
+        // Object.assign(${webpack.RuntimeGlobals.shareScopeMap}.default, {
+        // react: global.__webpack_share_scopes__.default.react,
+        // 'next/link': global.__webpack_share_scopes__.default['next/link'],
+        // 'next/script': global.__webpack_share_scopes__.default['next/script'],
+        // 'next/router': global.__webpack_share_scopes__.default['next/router'],
+        // 'next/head': global.__webpack_share_scopes__.default['next/head'],
+        // 'next/dynamic': global.__webpack_share_scopes__.default['next/dynamic'],
+        // })
         //console.log(remote,remote.init(global.__webpack_share_scopes__.default))
         // remote.init(global.__webpack_share_scopes__.default).then(()=>{
         // console.log('did initialize');
