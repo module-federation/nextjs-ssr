@@ -2,7 +2,7 @@ const React = require("react");
 const { Head } = require("next/document");
 const path = require("path");
 const crypto = require("crypto");
-
+const existingChunks = new Set()
 const generateDynamicRemoteScript = (remoteContainer) => {
   const [name, path] = remoteContainer.path.split("@");
   const remoteUrl = new URL(path.replace("ssr", "chunks"));
@@ -28,7 +28,9 @@ const extractChunkCorrelation = (remoteContainer, lookup, request) => {
     remoteContainer.chunkMap.federatedModules.map((federatedRemote) => {
       federatedRemote.exposes[request].forEach((remoteChunks) => {
         remoteChunks.chunks.map((chunk) => {
-          if (!lookup.files.includes(new URL(chunk, baseurl).href)) {
+          if(lookup.files.includes(chunk) || existingChunks.has(chunk) || lookup.files.includes(new URL(chunk, baseurl).href)) {
+
+          } else {
             lookup.files.push(new URL(chunk, baseurl).href);
           }
         });
@@ -65,9 +67,10 @@ requireMethod.cache[requestPath].exports = new Proxy(loadableManifest, {
         if (!remotes[remote]) {
           Object.assign(
             remotes,
-            generateDynamicRemoteScript(global.loadedRemotes[remote])
+            generateDynamicRemoteScript(global.loadedRemotes.get(remote))
           );
         }
+        console.log(prop);
 
         const dynamicLoadableManifestItem = {
           id: prop,
@@ -75,26 +78,28 @@ requireMethod.cache[requestPath].exports = new Proxy(loadableManifest, {
         };
         // TODO: figure out who is requesting module
         let remoteModuleContainerId;
-        Object.values(global.loadedRemotes).find((remote) => {
+
+        const remoteMapIterator = global.loadedRemotes
+
+
+        for (const [key, remoteContainer] of remoteMapIterator.entries()) {
           if (
-            remote.chunkMap &&
-            remote.chunkMap.federatedModules[0] &&
-            remote.chunkMap.federatedModules[0].remoteModules
+            remoteContainer.chunkMap &&
+            remoteContainer.chunkMap.federatedModules[0] &&
+            remoteContainer.chunkMap.federatedModules[0].remote === remote
           ) {
-            if (
-              remote.chunkMap.federatedModules[0].remoteModules[remoteImport]
-            ) {
-              remoteModuleContainerId =
-                remote.chunkMap.federatedModules[0].remoteModules[remoteImport];
-              return true;
-            }
+            // console.log('located container chunkmap for', remote);
+            // console.log('looking for', module, 'inside', remote);
+            //TODO need to get maps for production
+            // dynamicLoadableManifestItem.files = remoteContainer.chunkMap.federatedModules[0].exposes[`./${module}`]
           }
-        });
+        }
+
         if (remoteModuleContainerId && process.env.NODE_ENV !== "development") {
           dynamicLoadableManifestItem.id = remoteModuleContainerId;
         }
         extractChunkCorrelation(
-          global.loadedRemotes[remote],
+          global.loadedRemotes.get(remote),
           dynamicLoadableManifestItem,
           `./${module}`
         );
@@ -104,6 +109,7 @@ requireMethod.cache[requestPath].exports = new Proxy(loadableManifest, {
     return target[prop];
   },
 });
+
 const flushChunks = async (remoteEnvVar = process.env.REMOTES) => {
   remotes = {};
   const remoteKeys = Object.keys(remoteEnvVar);
@@ -111,6 +117,9 @@ const flushChunks = async (remoteEnvVar = process.env.REMOTES) => {
 
   try {
     for (const key in loadableManifest) {
+      loadableManifest[key].files.forEach((hostChunk)=>{
+        existingChunks.add(hostChunk)
+      });
       const [where, what] = key.split("->");
       const request = what.trim();
       const foundFederatedImport = remoteKeys.find((remoteKey) => {
@@ -193,8 +202,9 @@ export class ExtendedHead extends Head {
   }
   getDynamicChunks(files) {
     const dynamicChunks = super.getDynamicChunks(files);
-    return dynamicChunks.map((chunk) => {
+    const c= dynamicChunks.map((chunk) => {
       if (!chunk) return null;
+      console.log('react render chunk', chunk.props.src);
       if (chunk.props.src.startsWith("/") && chunk.props.src.includes("http")) {
         return React.cloneElement(chunk, {
           ...chunk.props,
@@ -214,6 +224,8 @@ export class ExtendedHead extends Head {
       }
       return chunk;
     });
+
+    return c
   }
 }
 
@@ -221,7 +233,6 @@ const hashmap = {};
 const revalidate = () => {
   if (global.REMOTE_CONFIG) {
     return new Promise((res) => {
-      console.log("fetching remote again");
       for (const property in global.REMOTE_CONFIG) {
         const [name, url] = global.REMOTE_CONFIG[property].split("@");
         fetch(url)
@@ -259,7 +270,7 @@ const revalidate = () => {
       if (global.hotLoad) {
         global.hotLoad();
       }
-      global.loadedRemotes = {};
+      //global.loadedRemotes.clear()
       Object.keys(req.cache).forEach((k) => {
         if (
           k.includes("remote") ||

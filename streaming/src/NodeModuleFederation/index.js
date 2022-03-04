@@ -3,14 +3,12 @@ const executeLoadTemplate = `
         const scriptUrl = remoteUrl.split("@")[1];
         const moduleName = remoteUrl.split("@")[0];
         return new Promise(function (resolve, reject) {
-        console.log('getting scropt',scriptUrl);
      
           fetch(scriptUrl).then(function(res){
             return res.text()
           }).then(function(scriptContent){
             try {
               const remote = eval(scriptContent + '\\n  try{' + moduleName + '}catch(e) { null; };');
-              console.log('remote container', remote);
 
               // const remote = eval('let exports = {};' + scriptContent + 'exports')
               resolve(remote)
@@ -37,22 +35,24 @@ function buildRemotes(mfConf, webpack) {
            var requireFunction = ${webpack.RuntimeGlobals.require} ? ${
         webpack.RuntimeGlobals.require
       } : arguments[2]
-     console.log('Server loading remote container', ${JSON.stringify(name)});
-        ${builtinsTemplate}
-
-        global.loadedRemotes = global.loadedRemotes || {};
-        if(global.loadedRemotes[${JSON.stringify(name)}]) {
-          res(global.loadedRemotes[${JSON.stringify(name)}])
-        return 
+        ${builtinsTemplate};
+        
+        if(!global.loadedRemotes) {
+          global.loadedRemotes = new Map()
         }
+        
+        if(global.loadedRemotes.has(${JSON.stringify(name)})) {
+          const getRemote = global.loadedRemotes.get(${JSON.stringify(name)})
+          res(getRemote)
+          return 
+        }
+    
         console.log('before execute load');
      
-        global.loadedRemotes[${JSON.stringify(
-          name
-        )}] = executeLoad("${config}").then(function(remote){
+        const loadingRemote = executeLoad("${config}").then(function(remote){
         
         console.log(remote);
-        
+        console.log(${webpack.RuntimeGlobals.shareScopeMap}.default);
         // var __webpack_require__ = requireFunction
         // Object.assign(${webpack.RuntimeGlobals.shareScopeMap}.default, {
         // react: global.__webpack_share_scopes__.default.react,
@@ -80,12 +80,13 @@ function buildRemotes(mfConf, webpack) {
             return remote.init(${webpack.RuntimeGlobals.shareScopeMap}.default)
             } catch(e){console.log('remote container already initialized')}}
           }
-          Object.assign(global.loadedRemotes,{${JSON.stringify(name)}: proxy});
-     
-          return global.loadedRemotes[${JSON.stringify(name)}]
+          global.loadedRemotes.set(${JSON.stringify(name)},proxy);
+console.log('global.loadedRemotes');
+          return global.loadedRemotes.get(${JSON.stringify(name)})
         })
-
-        res(global.loadedRemotes[${JSON.stringify(name)}])
+        console.log(global.loadedRemotes);
+        global.loadedRemotes.set(${JSON.stringify(name)},loadingRemote);
+        res(global.loadedRemotes.get(${JSON.stringify(name)}))
       })`;
       acc.runtime[name] = `()=> ${template}`;
       acc.buildTime[name] = `promise ${template}`;
