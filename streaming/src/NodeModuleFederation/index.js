@@ -3,17 +3,14 @@ const executeLoadTemplate = `
         const scriptUrl = remoteUrl.split("@")[1];
         const moduleName = remoteUrl.split("@")[0];
         return new Promise(function (resolve, reject) {
-        console.log('getting scropt',scriptUrl);
-     
+        
           fetch(scriptUrl).then(function(res){
             return res.text()
           }).then(function(scriptContent){
+          // const remote = eval(scriptContent + '\\n  try{' + moduleName + '}catch(e) { null; };');
             try {
-              const remote = eval(scriptContent + '\\n  try{' + moduleName + '}catch(e) { null; };');
-              console.log('remote container', remote);
-
-              // const remote = eval('let exports = {};' + scriptContent + 'exports')
-              resolve(remote)
+              const remote = eval('let exports = {};' + scriptContent + 'exports')
+              resolve(remote[moduleName])
             } catch(e) {
               console.error('problem executing remote module', moduleName);
               reject(e);
