@@ -74,7 +74,7 @@ function buildRemotes(mfConf, webpack) {
             try {
             console.log('arg',arg);
 
-            return remote.init(${webpack.RuntimeGlobals.shareScopeMap}.default)
+            return remote.init(arg)
             } catch(e){console.log('remote container already initialized')}}
           }
           Object.assign(global.loadedRemotes,{${JSON.stringify(name)}: proxy});
