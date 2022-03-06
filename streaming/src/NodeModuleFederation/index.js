@@ -46,24 +46,15 @@ function buildRemotes(mfConf, webpack) {
      
         global.loadedRemotes[${JSON.stringify(
           name
-        )}] = executeLoad("${config}").then(function(remote){
+        )}] = executeLoad("${config}").then((remote)=>{
+          return Promise.resolve(remote.init(${webpack.RuntimeGlobals.shareScopeMap}.default)).then(()=>{
+            return remote
+          })
+        })
+        .then(function(remote){
         
         console.log(remote);
-        
-        // var __webpack_require__ = requireFunction
-        // Object.assign(${webpack.RuntimeGlobals.shareScopeMap}.default, {
-        // react: global.__webpack_share_scopes__.default.react,
-        // 'next/link': global.__webpack_share_scopes__.default['next/link'],
-        // 'next/script': global.__webpack_share_scopes__.default['next/script'],
-        // 'next/router': global.__webpack_share_scopes__.default['next/router'],
-        // 'next/head': global.__webpack_share_scopes__.default['next/head'],
-        // 'next/dynamic': global.__webpack_share_scopes__.default['next/dynamic'],
-        // })
-        //console.log(remote,remote.init(global.__webpack_share_scopes__.default))
-        // remote.init(global.__webpack_share_scopes__.default).then(()=>{
-        // console.log('did initialize');
-        // })
-        //remote.init(${webpack.RuntimeGlobals.shareScopeMap}.default)
+   
         console.log('in thennable');
            const proxy= {
             get: remote.get,
@@ -74,7 +65,7 @@ function buildRemotes(mfConf, webpack) {
             try {
             console.log('arg',arg);
 
-            return remote.init(arg)
+            return remote.init(${webpack.RuntimeGlobals.shareScopeMap}.default)
             } catch(e){console.log('remote container already initialized')}}
           }
           Object.assign(global.loadedRemotes,{${JSON.stringify(name)}: proxy});

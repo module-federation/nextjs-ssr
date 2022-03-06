@@ -203,7 +203,6 @@ class ReadFileChunkLoadingRuntimeModule extends RuntimeModule {
                         "console.log('needs to load remote script');",
                         "console.log('loadScript exists',loadScript);",
                         `var remotes = ${JSON.stringify(remotes)};`,
-                        `console.log(${JSON.stringify(name)},'contains',remotes)`,
                         `if(global.REMOTE_CONFIG && !global.REMOTE_CONFIG[${JSON.stringify(name)}]) {`,
                           Template.indent([
                             `Object.assign(global.REMOTE_CONFIG, remotes)`
