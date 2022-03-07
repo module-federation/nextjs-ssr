@@ -1,7 +1,7 @@
 const RuntimeGlobals = require("webpack/lib/RuntimeGlobals");
 const StartupChunkDependenciesPlugin = require("webpack/lib/runtime/StartupChunkDependenciesPlugin");
 import ChunkLoadingRuntimeModule from "./LoadFileChunkLoadingRuntimeModule";
-
+// const ChunkLoadingRuntimeModule = require('webpack/lib/node/ReadFileChunkLoadingRuntimeModule')
 class CommonJsChunkLoadingPlugin {
   constructor(options, context) {
     this.options = options || {};

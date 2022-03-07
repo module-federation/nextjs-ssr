@@ -293,10 +293,9 @@ export default MyDocument;
 
 When a remote is deployed, prod servers will hot reload. This solves the "stuck" modules problem once a federated module has been required.
 
-By default, revalidation will purge require cache. If you want to perform any additional actions, you can do so in the `then` parameter. 
+By default, revalidation will purge require cache. If you want to perform any additional actions, you can do so in the `then` parameter.
 
-*You do not need to call any extra functions to hot reload*
-
+_You do not need to call any extra functions to hot reload_
 
 1. Enable the hot experiment via the plugin
 
@@ -318,7 +317,7 @@ withFederatedSidecar(
   // sidecar specific options
   {
     experiments: {
-      hot: true
+      hot: true,
     },
   }
 );
@@ -333,28 +332,28 @@ import {
   ExtendedHead,
   revalidate,
   flushChunks,
-  DevHotScript
+  DevHotScript,
 } from "@module-federation/nextjs-ssr/flushChunks";
 
 class MyDocument extends Document {
   static async getInitialProps(ctx) {
     ctx.res.on("finish", () => {
-      revalidate().then(()=>{
+      revalidate().then(() => {
         // choose any additional steps you want to take.
         // the promise will only resolve if remotes have changed and a hot reload needs to happen
-        if(process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === "development") {
           setTimeout(() => {
             // useful for dev or if you want to cold start lambdas.
             process.exit(1);
-          }, 50)
+          }, 50);
         }
-      })
+      });
     });
     const remotes = await flushChunks(process.env.REMOTES);
     const initialProps = await Document.getInitialProps(ctx);
     return {
       ...initialProps,
-      remoteChunks: remotes
+      remoteChunks: remotes,
     };
   }
 
@@ -365,7 +364,7 @@ class MyDocument extends Document {
           <meta name="robots" content="noindex" />
           {Object.values(this.props.remoteChunks)}
         </ExtendedHead>
-        <DevHotScript/>
+        <DevHotScript />
         <body className="bg-background-grey">
           <Main />
           <NextScript />
@@ -376,7 +375,6 @@ class MyDocument extends Document {
 }
 
 export default MyDocument;
-
 ```
 
 ## Support and Maintenance

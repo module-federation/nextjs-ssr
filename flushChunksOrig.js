@@ -90,7 +90,7 @@ requireMethod.cache[requestPath].exports = new Proxy(loadableManifest, {
             }
           }
         });
-        if (remoteModuleContainerId && process.env.NODE_ENV !== 'development') {
+        if (remoteModuleContainerId && process.env.NODE_ENV !== "development") {
           dynamicLoadableManifestItem.id = remoteModuleContainerId;
         }
         extractChunkCorrelation(
@@ -272,7 +272,7 @@ const revalidate = () => {
     });
   }
 
-  return new Promise((res,rej)=>{})
+  return new Promise((res, rej) => {});
 };
 
 const DevHotScript = () => {

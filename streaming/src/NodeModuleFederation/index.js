@@ -31,29 +31,42 @@ function buildRemotes(mfConf, webpack) {
   return Object.entries(mfConf.remotes || {}).reduce(
     (acc, [name, config]) => {
       const template = `new Promise((res) => {
-           var ${webpack.RuntimeGlobals.require} = ${
+           var requireFunction = ${webpack.RuntimeGlobals.require} ? ${
         webpack.RuntimeGlobals.require
-      } ? ${webpack.RuntimeGlobals.require} : arguments[2]
-     
+      } : arguments[2]
+     console.log('Server loading remote container', ${JSON.stringify(name)});
         ${builtinsTemplate}
+
         global.loadedRemotes = global.loadedRemotes || {};
         if(global.loadedRemotes[${JSON.stringify(name)}]) {
           res(global.loadedRemotes[${JSON.stringify(name)}])
         return 
         }
+        console.log('before execute load');
+     
         global.loadedRemotes[${JSON.stringify(
           name
-        )}] = executeLoad("${config}").then(function(remote){
+        )}] = executeLoad("${config}").then((remote)=>{
+          return Promise.resolve(remote.init(${webpack.RuntimeGlobals.shareScopeMap}.default)).then(()=>{
+            return remote
+          })
+        })
+        .then(function(remote){
         
+        console.log(remote);
+   
+        console.log('in thennable');
            const proxy= {
             get: remote.get,
             chunkMap: remote.chunkMap,
             path: "${config}",
-            init:(arg)=>{try {
-            return remote.init({
-                ...arg,
-                ...${webpack.RuntimeGlobals.require}.default
-            })} catch(e){console.log('remote container already initialized')}}
+            init:(arg)=>{
+            console.log('in init phase');
+            try {
+            console.log('arg',arg);
+
+            return remote.init(${webpack.RuntimeGlobals.shareScopeMap}.default)
+            } catch(e){console.log('remote container already initialized')}}
           }
           Object.assign(global.loadedRemotes,{${JSON.stringify(name)}: proxy});
      
