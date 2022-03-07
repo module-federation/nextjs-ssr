@@ -71,10 +71,10 @@ function buildRemotes(mfConf, webpack) {
           }
           Object.assign(global.loadedRemotes,{${JSON.stringify(name)}: proxy});
      
-          return global.loadedRemotes[${JSON.stringify(name)}]
+          res(global.loadedRemotes[${JSON.stringify(name)}])
         })
 
-        res(global.loadedRemotes[${JSON.stringify(name)}])
+     
       })`;
       acc.runtime[name] = `()=> ${template}`;
       acc.buildTime[name] = `promise ${template}`;
