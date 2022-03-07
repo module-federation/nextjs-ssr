@@ -3,10 +3,12 @@ const executeLoadTemplate = `
         const scriptUrl = remoteUrl.split("@")[1];
         const moduleName = remoteUrl.split("@")[0];
         return new Promise(function (resolve, reject) {
-        
+        console.log('fetching',scriptUrl);
           fetch(scriptUrl).then(function(res){
+          console.log('got response', moduleName);
             return res.text()
           }).then(function(scriptContent){
+          console.log('will eval remote');
           // const remote = eval(scriptContent + '\\n  try{' + moduleName + '}catch(e) { null; };');
             try {
               const remote = eval('let exports = {};' + scriptContent + 'exports')
@@ -18,6 +20,7 @@ const executeLoadTemplate = `
           }).catch((e)=>{
             console.error('failed to fetch remote', moduleName, scriptUrl);
             console.error(e);
+          reject(null)
           })
         });
     }
@@ -34,15 +37,15 @@ function buildRemotes(mfConf, webpack) {
            var requireFunction = ${webpack.RuntimeGlobals.require} ? ${
         webpack.RuntimeGlobals.require
       } : arguments[2]
-     console.log('Server loading remote container', ${JSON.stringify(name)});
+
         ${builtinsTemplate}
 
         global.loadedRemotes = global.loadedRemotes || {};
+
         if(global.loadedRemotes[${JSON.stringify(name)}]) {
           res(global.loadedRemotes[${JSON.stringify(name)}])
-        return 
+          return 
         }
-        console.log('before execute load');
      
         global.loadedRemotes[${JSON.stringify(
           name
