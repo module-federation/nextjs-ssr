@@ -47,9 +47,7 @@ function buildRemotes(mfConf, webpack) {
           return 
         }
      
-        global.loadedRemotes[${JSON.stringify(
-          name
-        )}] = executeLoad("${config}").then((remote)=>{
+        executeLoad("${config}").then((remote)=>{
           return Promise.resolve(remote.init(${webpack.RuntimeGlobals.shareScopeMap}.default)).then(()=>{
             return remote
           })
