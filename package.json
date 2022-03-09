@@ -1,24 +1,22 @@
 {
   "public": true,
   "name": "@module-federation/nextjs-ssr",
-  "version": "0.0.4-beta.7",
+  "version": "0.0.5-beta.5",
   "description": "Module Federation CSR & SSR Support for Next.js",
-  "main": "load.js",
+  "main": "bundle.js",
   "types": "index.d.ts",
   "repository": "https://github.com/module-federation/nextjs-ssr",
   "author": "Zack Jackson <zackary.l.jackson@gmail.com>",
   "license": "MIT",
   "scripts": {
     "prettier": "prettier --write \"**/*.{js,json,md,ts,tsx}\"",
-    "build": "rollup --config rollup.config.js && rollup --config rollup.flushchunks.config.js && bytenode --compile bundle.js && mv bundle.jsc compiled.jsc",
-    "postinstall": "bytenode --compile bundle.js && mv bundle.jsc compiled.jsc && rm bundle.js",
+    "build": "rollup --config rollup.config.js && rollup --config rollup.flushchunks.config.js",
     "prepublishOnly": "yarn build"
   },
   "publishConfig": {
     "registry": "https://r.privjs.com"
   },
   "dependencies": {
-    "bytenode": "^1.3.4",
     "chalk": "4.1.2",
     "lodash.clonedeep": "^4.5.0",
     "webpack-federated-stats-plugin": "^2.0.9"
