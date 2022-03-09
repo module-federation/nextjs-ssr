@@ -38,7 +38,7 @@ function buildRemotes(mfConf, webpack) {
         webpack.RuntimeGlobals.require
       } ? ${
         webpack.RuntimeGlobals.require
-      } : typeof arguments !== 'undefined' && arguments[2]
+      } : typeof arguments !== 'undefined' ? arguments[2] : false
     // if using modern output, then there are no arguments on the parent function scope, thus we need to get it via a window global. 
           var shareScope = ${webpack.RuntimeGlobals.require} ? ${
         webpack.RuntimeGlobals.shareScopeMap
@@ -52,6 +52,8 @@ function buildRemotes(mfConf, webpack) {
           res(global.loadedRemotes[${JSON.stringify(name)}])
           return 
         }
+        
+        console.log('share scope before execute load', shareScope)
      
         executeLoad("${config}").then((remote)=>{
           return Promise.resolve(remote.init(shareScope.default)).then(()=>{
@@ -71,7 +73,7 @@ function buildRemotes(mfConf, webpack) {
             console.log('in init phase');
             try {
             console.log('arg',arg);
-
+            console.log('before init, shareScope);
             return remote.init(shareScope.default)
             } catch(e){console.log('remote container already initialized')}}
           }
