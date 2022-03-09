@@ -73,7 +73,7 @@ function buildRemotes(mfConf, webpack) {
             console.log('in init phase');
             try {
             console.log('arg',arg);
-            console.log('before init, shareScope);
+            console.log('before init', shareScope);
             return remote.init(shareScope.default)
             } catch(e){console.log('remote container already initialized')}}
           }
