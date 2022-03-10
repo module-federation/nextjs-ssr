@@ -38,11 +38,14 @@ function buildRemotes(mfConf, webpack) {
         webpack.RuntimeGlobals.require
       } ? ${
         webpack.RuntimeGlobals.require
-      } : typeof arguments !== 'undefined' ? arguments[2] : false
+      } : typeof arguments !== 'undefined' ? arguments[2] : false;
+      
     // if using modern output, then there are no arguments on the parent function scope, thus we need to get it via a window global. 
-          var shareScope = ${webpack.RuntimeGlobals.require} ? ${
+          var shareScope = (${webpack.RuntimeGlobals.require} && ${webpack.RuntimeGlobals.shareScopeMap}) ? ${
         webpack.RuntimeGlobals.shareScopeMap
       } : global.__webpack_share_scopes__
+      
+        console.log("after define",shareScope)
 
         ${builtinsTemplate}
 
