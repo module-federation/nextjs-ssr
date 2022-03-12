@@ -109,7 +109,7 @@ const flushChunks = async (remoteEnvVar = process.env.REMOTES) => {
   remotes = {};
   const remoteKeys = Object.keys(remoteEnvVar);
   const preload = [];
-  console.log(loadableManifest);
+
   try {
     for (const key in loadableManifest) {
       const [where, what] = key.split("->");
