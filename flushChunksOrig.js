@@ -51,6 +51,7 @@ const requestPath = path.join(
   "server/pages",
   "../../react-loadable-manifest.json"
 );
+
 let remotes = {};
 const loadableManifest = requireMethod(requestPath);
 requireMethod.cache[requestPath].exports = new Proxy(loadableManifest, {
@@ -108,7 +109,7 @@ const flushChunks = async (remoteEnvVar = process.env.REMOTES) => {
   remotes = {};
   const remoteKeys = Object.keys(remoteEnvVar);
   const preload = [];
-
+  console.log(loadableManifest);
   try {
     for (const key in loadableManifest) {
       const [where, what] = key.split("->");
@@ -264,7 +265,9 @@ const revalidate = () => {
         if (
           k.includes("remote") ||
           k.includes("runtime") ||
-          k.includes("server")
+          k.includes("server") ||
+          k.includes("flushChunks") ||
+          k.includes("react-loadable-manifest")
         ) {
           delete req.cache[k];
         }
