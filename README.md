@@ -192,7 +192,7 @@ module.exports = withFederatedSidecar({
 
     // we attach next internals to share scope at runtime
     config.module.rules.push({
-      test: [/_app.[jt]sx?/,/_document.[jt]sx?/],
+      test: [/_app.[jt]sx?/, /_document.[jt]sx?/],
       loader: "@module-federation/nextjs-ssr/lib/federation-loader.js",
     });
 

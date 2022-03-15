@@ -3,12 +3,9 @@ const executeLoadTemplate = `
         const scriptUrl = remoteUrl.split("@")[1];
         const moduleName = remoteUrl.split("@")[0];
         return new Promise(function (resolve, reject) {
-        console.log('fetching',scriptUrl);
           fetch(scriptUrl).then(function(res){
-          console.log('got response', moduleName);
             return res.text()
           }).then(function(scriptContent){
-          console.log('will eval remote');
           // const remote = eval(scriptContent + '\\n  try{' + moduleName + '}catch(e) { null; };');
             try {
               const remote = eval('let exports = {};' + scriptContent + 'exports')
@@ -41,12 +38,12 @@ function buildRemotes(mfConf, webpack) {
       } : typeof arguments !== 'undefined' ? arguments[2] : false;
       
     // if using modern output, then there are no arguments on the parent function scope, thus we need to get it via a window global. 
-          var shareScope = (${webpack.RuntimeGlobals.require} && ${webpack.RuntimeGlobals.shareScopeMap}) ? ${
+          var shareScope = (${webpack.RuntimeGlobals.require} && ${
+        webpack.RuntimeGlobals.shareScopeMap
+      }) ? ${
         webpack.RuntimeGlobals.shareScopeMap
       } : global.__webpack_share_scopes__
       
-        console.log("after define",shareScope)
-
         ${builtinsTemplate}
 
         global.loadedRemotes = global.loadedRemotes || {};
@@ -56,8 +53,6 @@ function buildRemotes(mfConf, webpack) {
           return 
         }
         
-        console.log('share scope before execute load', shareScope)
-     
         executeLoad("${config}").then((remote)=>{
           return Promise.resolve(remote.init(shareScope.default)).then(()=>{
             return remote
@@ -65,18 +60,12 @@ function buildRemotes(mfConf, webpack) {
         })
         .then(function(remote){
         
-        console.log(remote);
-   
-        console.log('in thennable');
            const proxy= {
             get: remote.get,
             chunkMap: remote.chunkMap,
             path: "${config}",
             init:(arg)=>{
-            console.log('in init phase');
             try {
-            console.log('arg',arg);
-            console.log('before init', shareScope);
             return remote.init(shareScope.default)
             } catch(e){console.log('remote container already initialized')}}
           }
