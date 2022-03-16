@@ -208,7 +208,7 @@ module.exports = {
   webpack(config, options) {
     // we attach next internals to share scope at runtime
     config.module.rules.push({
-      test: /pages\/_app.[jt]sx?/,
+      test: [/_app.[jt]sx?/, /_document.[jt]sx?/],
       loader: "@module-federation/nextjs-ssr/lib/federation-loader.js",
     });
 
@@ -337,7 +337,8 @@ import {
 
 class MyDocument extends Document {
   static async getInitialProps(ctx) {
-    ctx.res.on("finish", () => {
+    // could also be on "close"
+    ctx?.res?.on("finish", () => {
       revalidate().then(() => {
         // choose any additional steps you want to take.
         // the promise will only resolve if remotes have changed and a hot reload needs to happen
