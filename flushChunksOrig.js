@@ -217,21 +217,21 @@ export class ExtendedHead extends Head {
     });
   }
 }
-var interval
+var interval;
 const hashmap = {};
 const revalidate = (options) => {
   if (global.REMOTE_CONFIG) {
     return new Promise((res) => {
       const { poll, timeout } = Object.assign(
-          {
-            poll: process.env.NODE_ENV === "development",
-            timeout: 3000,
-          },
-          options
+        {
+          poll: process.env.NODE_ENV === "development",
+          timeout: 3000,
+        },
+        options
       );
 
-      if(poll && interval) {
-        clearInterval(interval)
+      if (poll && interval) {
+        clearInterval(interval);
       }
 
       if (poll) {
@@ -252,7 +252,7 @@ const revalidate = (options) => {
                 hashmap[name] = hash;
                 console.log(name, "hash is different - must hot reload server");
                 res();
-                if(poll){
+                if (poll) {
                   process.exit();
                 }
               }

@@ -224,7 +224,6 @@ module.exports = {
 Chunk Flushing is the mechanism used to _flush_ dynamic imported chunks out of a render and into the HTML of a document.
 If you want to SSR the `<script>` tags of federated imports, reducing Round Trip Time (RTT). You can enable the following experiment
 
-
 1. Enable the flushChunk experiment via the plugin
 
 ```js
