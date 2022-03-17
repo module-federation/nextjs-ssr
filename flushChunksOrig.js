@@ -217,12 +217,29 @@ export class ExtendedHead extends Head {
     });
   }
 }
-
+var interval
 const hashmap = {};
-const revalidate = () => {
+const revalidate = (options) => {
   if (global.REMOTE_CONFIG) {
     return new Promise((res) => {
-      console.log("fetching remote again");
+      const { poll, timeout } = Object.assign(
+          {
+            poll: process.env.NODE_ENV === "development",
+            timeout: 3000,
+          },
+          options
+      );
+
+      if(poll && interval) {
+        clearInterval(interval)
+      }
+
+      if (poll) {
+        interval = setInterval(() => {
+          revalidate(options);
+        }, timeout);
+      }
+
       for (const property in global.REMOTE_CONFIG) {
         const [name, url] = global.REMOTE_CONFIG[property].split("@");
         fetch(url)

@@ -224,6 +224,7 @@ module.exports = {
 Chunk Flushing is the mechanism used to _flush_ dynamic imported chunks out of a render and into the HTML of a document.
 If you want to SSR the `<script>` tags of federated imports, reducing Round Trip Time (RTT). You can enable the following experiment
 
+
 1. Enable the flushChunk experiment via the plugin
 
 ```js
@@ -296,6 +297,18 @@ When a remote is deployed, prod servers will hot reload. This solves the "stuck"
 By default, revalidation will purge require cache. If you want to perform any additional actions, you can do so in the `then` parameter.
 
 _You do not need to call any extra functions to hot reload_
+
+Options:
+
+```js
+// these are the defaults
+revalidate({
+  // revalidate remotes by polling
+  poll: true, // defualt process.env.NODE_ENV === 'development'
+  // how ofter should it poll
+  pollFrequeny: 3000, // defaults to 3000ms
+});
+```
 
 1. Enable the hot experiment via the plugin
 
