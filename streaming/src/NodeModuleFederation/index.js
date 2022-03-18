@@ -17,9 +17,20 @@ const executeLoadTemplate = `
           }).catch((e)=>{
             console.error('failed to fetch remote', moduleName, scriptUrl);
             console.error(e);
-          reject(null)
+            reject(null)
           })
-        });
+        }).catch(()=>{
+          console.warn(moduleName,'is offline, returning fake remote')
+          return {
+            fake: true,
+            get:(arg)=>{
+              console.log('faking', arg,'module on', moduleName);
+         
+              return ()=> Promise.resolve();
+            },
+            init:()=>{}
+          }
+        })
     }
 `;
 
@@ -59,15 +70,19 @@ function buildRemotes(mfConf, webpack) {
           })
         })
         .then(function(remote){
-        
-           const proxy= {
+          const proxy= {
             get: remote.get,
             chunkMap: remote.chunkMap,
             path: "${config}",
             init:(arg)=>{
             try {
-            return remote.init(shareScope.default)
+              return remote.init(shareScope.default)
             } catch(e){console.log('remote container already initialized')}}
+          }
+          
+          if(remote.fake) {
+            res(proxy);
+            return null
           }
           Object.assign(global.loadedRemotes,{${JSON.stringify(name)}: proxy});
      
