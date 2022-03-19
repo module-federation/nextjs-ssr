@@ -45,7 +45,6 @@ class ReadFileChunkLoadingRuntimeModule extends RuntimeModule {
   generate() {
     const { baseURI, promiseBaseURI, remotes, name } = this.options;
     const { webpack } = this.context;
-console.log(remotes);
     const chunkHasJs =
       (webpack && webpack.javascript.JavascriptModulesPlugin.chunkHasJs) ||
       require("webpack/lib/javascript/JavascriptModulesPlugin").chunkHasJs;
@@ -207,7 +206,9 @@ console.log(remotes);
                             "console.log('needs to load remote script');",
                             //language=JS
                             `console.log('before remote var creation')`,
-                            `console.log('before remote var creation', ${JSON.stringify(remotes)})`,
+                            `console.log('before remote var creation', ${JSON.stringify(
+                              remotes
+                            )})`,
                             `var remotes = ${JSON.stringify(remotes)};`,
                             //language=JS
                             `console.log('remotes in chunk load',remotes)`,

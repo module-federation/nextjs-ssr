@@ -59,20 +59,17 @@ function buildRemotes(mfConf, webpack) {
         ${builtinsTemplate}
 
         global.loadedRemotes = global.loadedRemotes || {};
-        console.log('before conditionals', global.loadedRemotes)
         if (global.loadedRemotes[${JSON.stringify(name)}]) {
           res(global.loadedRemotes[${JSON.stringify(name)}])
           return
         }
 
         executeLoad("${config}").then((remote) => {
-          console.log('got the remote', remote)
           return Promise.resolve(remote.init(shareScope.default)).then(() => {
             return remote
           })
         })
           .then(function (remote) {
-            console.log('initialized the remote');
             const proxy = {
               get: remote.get,
               chunkMap: remote.chunkMap,
@@ -89,20 +86,15 @@ function buildRemotes(mfConf, webpack) {
               res(proxy);
               return null
             }
-
-            console.log('about to load remote into global scope', remote);
-
+            
             Object.assign(global.loadedRemotes, {
               ${JSON.stringify(name)}: proxy
             });
-            console.log('remote assigned into global scope', global.loadedRemotes);
+            
             res(global.loadedRemotes[${JSON.stringify(name)}])
           })
 
 
-      }).then((remoteRes) => {
-        console.log('resolved promise with remote', remoteRes);
-        return remoteRes
       })`;
       acc.runtime[name] = `()=> ${template}`;
       acc.buildTime[name] = `promise ${template}`;
@@ -132,7 +124,7 @@ class StreamingFederation {
       "process.env.REMOTES": runtime,
     };
     if (this.experiments.hot) {
-      defs["process.env.REMOTE_CONFIG"] = hot
+      defs["process.env.REMOTE_CONFIG"] = hot;
     }
     new ((webpack && webpack.DefinePlugin) || require("webpack").DefinePlugin)(
       defs
