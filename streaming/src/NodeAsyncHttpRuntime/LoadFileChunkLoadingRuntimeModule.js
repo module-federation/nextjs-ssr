@@ -45,7 +45,7 @@ class ReadFileChunkLoadingRuntimeModule extends RuntimeModule {
   generate() {
     const { baseURI, promiseBaseURI, remotes, name } = this.options;
     const { webpack } = this.context;
-
+console.log(remotes);
     const chunkHasJs =
       (webpack && webpack.javascript.JavascriptModulesPlugin.chunkHasJs) ||
       require("webpack/lib/javascript/JavascriptModulesPlugin").chunkHasJs;
@@ -203,22 +203,43 @@ class ReadFileChunkLoadingRuntimeModule extends RuntimeModule {
                           "} else {",
                           Template.indent([
                             loadScriptTemplate,
+                            //language=JS
                             "console.log('needs to load remote script');",
-                            "console.log('loadScript exists',loadScript);",
+                            //language=JS
+                            `console.log('before remote var creation')`,
+                            `console.log('before remote var creation', ${JSON.stringify(remotes)})`,
                             `var remotes = ${JSON.stringify(remotes)};`,
+                            //language=JS
+                            `console.log('remotes in chunk load',remotes)`,
+                            //language=JS
+                            `console.log('global.REMOTE_CONFIG',global.REMOTE_CONFIG)`,
+                            //language=JS
                             `if(global.REMOTE_CONFIG && !global.REMOTE_CONFIG[${JSON.stringify(
                               name
-                            )}]) {`,
+                            )}]) {
+                            if(global.loadedRemotes){
+                              for (const property in global.loadedRemotes) {
+                                global.REMOTE_CONFIG[property] = global.loadedRemotes[property].path
+                              }
+                            }`,
                             Template.indent([
+                              //language=JS
                               `Object.assign(global.REMOTE_CONFIG, remotes)`,
                             ]),
                             "}",
+                            //language=JS
                             `var requestedRemote = global.REMOTE_CONFIG[${JSON.stringify(
                               name
                             )}]`,
+                            //language=JS
+                            `console.log('requestedRemote',requestedRemote);`,
+                            //language=JS
                             `var scriptUrl = new URL(requestedRemote.split("@")[1]);`,
+                            //language=JS
                             `var chunkName = ${RuntimeGlobals.getChunkScriptFilename}(chunkId);`,
+                            //language=JS
                             `console.log('remotes global',global.REMOTE_CONFIG);`,
+                            //language=JS
                             `console.log('chunkname to request',chunkName);`,
                             `var fileToReplace = require('path').basename(scriptUrl.pathname);`,
                             `scriptUrl.pathname = scriptUrl.pathname.replace(fileToReplace, chunkName);`,

@@ -41,55 +41,68 @@ function buildRemotes(mfConf, webpack) {
 
   return Object.entries(mfConf.remotes || {}).reduce(
     (acc, [name, config]) => {
+      //language=JS
       const template = `new Promise((res) => {
-      var ${webpack.RuntimeGlobals.require} = ${
+        var ${webpack.RuntimeGlobals.require} = ${
         webpack.RuntimeGlobals.require
       } ? ${
         webpack.RuntimeGlobals.require
       } : typeof arguments !== 'undefined' ? arguments[2] : false;
-      
-    // if using modern output, then there are no arguments on the parent function scope, thus we need to get it via a window global. 
-          var shareScope = (${webpack.RuntimeGlobals.require} && ${
+
+        // if using modern output, then there are no arguments on the parent function scope, thus we need to get it via a window global. 
+        var shareScope = (${webpack.RuntimeGlobals.require} && ${
         webpack.RuntimeGlobals.shareScopeMap
       }) ? ${
         webpack.RuntimeGlobals.shareScopeMap
       } : global.__webpack_share_scopes__
-      
+
         ${builtinsTemplate}
 
         global.loadedRemotes = global.loadedRemotes || {};
-
-        if(global.loadedRemotes[${JSON.stringify(name)}]) {
+        console.log('before conditionals', global.loadedRemotes)
+        if (global.loadedRemotes[${JSON.stringify(name)}]) {
           res(global.loadedRemotes[${JSON.stringify(name)}])
-          return 
+          return
         }
-        
-        executeLoad("${config}").then((remote)=>{
-          return Promise.resolve(remote.init(shareScope.default)).then(()=>{
+
+        executeLoad("${config}").then((remote) => {
+          console.log('got the remote', remote)
+          return Promise.resolve(remote.init(shareScope.default)).then(() => {
             return remote
           })
         })
-        .then(function(remote){
-          const proxy= {
-            get: remote.get,
-            chunkMap: remote.chunkMap,
-            path: "${config}",
-            init:(arg)=>{
-            try {
-              return remote.init(shareScope.default)
-            } catch(e){console.log('remote container already initialized')}}
-          }
-          
-          if(remote.fake) {
-            res(proxy);
-            return null
-          }
-          Object.assign(global.loadedRemotes,{${JSON.stringify(name)}: proxy});
-     
-          res(global.loadedRemotes[${JSON.stringify(name)}])
-        })
+          .then(function (remote) {
+            console.log('initialized the remote');
+            const proxy = {
+              get: remote.get,
+              chunkMap: remote.chunkMap,
+              path: "${config}",
+              init: (arg) => {
+                try {
+                  return remote.init(shareScope.default)
+                } catch (e) {
+                  console.log('remote container already initialized')
+                }
+              }
+            }
+            if (remote.fake) {
+              res(proxy);
+              return null
+            }
 
-     
+            console.log('about to load remote into global scope', remote);
+
+            Object.assign(global.loadedRemotes, {
+              ${JSON.stringify(name)}: proxy
+            });
+            console.log('remote assigned into global scope', global.loadedRemotes);
+            res(global.loadedRemotes[${JSON.stringify(name)}])
+          })
+
+
+      }).then((remoteRes) => {
+        console.log('resolved promise with remote', remoteRes);
+        return remoteRes
       })`;
       acc.runtime[name] = `()=> ${template}`;
       acc.buildTime[name] = `promise ${template}`;
@@ -106,6 +119,7 @@ class StreamingFederation {
     this.context = context || {};
     this.experiments = experiments || {};
   }
+
   apply(compiler) {
     // When used with Next.js, context is needed to use Next.js webpack
     const { webpack } = this.context;
@@ -118,9 +132,7 @@ class StreamingFederation {
       "process.env.REMOTES": runtime,
     };
     if (this.experiments.hot) {
-      Object.assign(defs, {
-        "process.env.REMOTE_CONFIG": hot,
-      });
+      defs["process.env.REMOTE_CONFIG"] = hot
     }
     new ((webpack && webpack.DefinePlugin) || require("webpack").DefinePlugin)(
       defs

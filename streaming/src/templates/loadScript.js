@@ -2,8 +2,10 @@
  * loadScript(baseURI, fileName, cb)
  * loadScript(scriptUrl, cb)
  */
+//language=JS
 export default `
     function loadScript() {
+        console.log('in load script funcrion')
         var url;
         var cb = arguments[arguments.length - 1];
         if (typeof cb !== "function") {
@@ -16,6 +18,7 @@ export default `
         } else {
             throw new Error("invalid number of arguments");
         }
+        console.log('attemting to load url', url)
         //TODO https support
         let request = (url.startsWith('https') ? require('https') : require('http')).get(url, function(resp) {
             if (resp.statusCode === 200) {
@@ -29,6 +32,9 @@ export default `
                 cb(resp);
             }
         });
-        request.on('error', error => cb(error));
+        request.on('error', error => {
+          console.log('CHUNK LOAD FAILED', error);
+          return cb(error)
+        });
     }
 `;
