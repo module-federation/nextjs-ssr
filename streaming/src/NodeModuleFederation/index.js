@@ -1,14 +1,16 @@
+'use strict';
+
 const executeLoadTemplate = `
     function executeLoad(remoteUrl) {
         const scriptUrl = remoteUrl.split("@")[1];
         const moduleName = remoteUrl.split("@")[0];
         return new Promise(function (resolve, reject) {
           fetch(scriptUrl).then(function(res){
-            return res.text()
+            return res.text();
           }).then(function(scriptContent){
           // const remote = eval(scriptContent + '\\n  try{' + moduleName + '}catch(e) { null; };');
             try {
-              const remote = eval('let exports = {};' + scriptContent + 'exports')
+              const remote = eval('let exports = {};' + scriptContent + 'exports');
               resolve(remote[moduleName])
             } catch(e) {
               console.error('problem executing remote module', moduleName);

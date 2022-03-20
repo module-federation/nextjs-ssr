@@ -1,7 +1,7 @@
 {
   "public": true,
   "name": "@module-federation/nextjs-ssr",
-  "version": "0.0.6-beta.2",
+  "version": "0.0.6-beta.3",
   "description": "Module Federation CSR & SSR Support for Next.js",
   "main": "bundle.js",
   "types": "index.d.ts",
@@ -10,7 +10,7 @@
   "license": "MIT",
   "scripts": {
     "prettier": "prettier --write \"**/*.{js,json,md,ts,tsx}\" --embedded-language-formatting=auto",
-    "build": "rollup --config rollup.config.js && rollup --config rollup.flushchunks.config.js",
+    "build": "npx appmap-agent-js -- rollup --config rollup.config.js && npx appmap-agent-js -- rollup --config rollup.flushchunks.config.js",
     "prepublishOnly": "yarn build"
   },
   "publishConfig": {
@@ -25,6 +25,7 @@
     "next": "^12.0.0"
   },
   "devDependencies": {
+    "@appland/appmap-agent-js": "^10.0.1",
     "@rollup/plugin-commonjs": "^21.0.1",
     "@rollup/plugin-node-resolve": "^13.1.3",
     "node-fetch": "^3.1.1",

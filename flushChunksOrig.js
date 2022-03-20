@@ -277,6 +277,9 @@ const revalidate = (options) => {
       } else {
         req = __non_webpack_require__;
       }
+      if (callback) {
+        callback();
+      }
       if (global.hotLoad) {
         global.hotLoad();
       }
@@ -295,7 +298,9 @@ const revalidate = (options) => {
     });
   }
 
-  return new Promise((res, rej) => {});
+  return new Promise((res, rej) => {
+    res(false);
+  });
 };
 
 const DevHotScript = () => {
