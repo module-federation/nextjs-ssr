@@ -2,7 +2,6 @@ const React = require("react");
 const { Head } = require("next/document");
 const path = require("path");
 const crypto = require("crypto");
-
 const generateDynamicRemoteScript = (remoteContainer) => {
   const [name, path] = remoteContainer.path.split("@");
   const remoteUrl = new URL(path.replace("ssr", "chunks"));
@@ -45,16 +44,21 @@ const requireMethod =
   typeof __non_webpack_require__ !== "undefined"
     ? __non_webpack_require__
     : require;
-const requestPath = path.join(
-  process.cwd(),
-  ".next",
-  "server/pages",
-  "../../react-loadable-manifest.json"
-);
+
+let foundNextFolder = null;
+if (!foundNextFolder) {
+  foundNextFolder = Object.keys(requireMethod.cache).find((key) => {
+    if (key.includes(".next")) {
+      return true;
+    }
+  });
+}
+const manifestPath =
+  foundNextFolder.split(".next")[0] + ".next/react-loadable-manifest.json";
 
 let remotes = {};
-const loadableManifest = requireMethod(requestPath);
-requireMethod.cache[requestPath].exports = new Proxy(loadableManifest, {
+const loadableManifest = requireMethod(manifestPath);
+requireMethod.cache[manifestPath].exports = new Proxy(loadableManifest, {
   get(target, prop, receiver) {
     if (!target[prop]) {
       let remoteImport = prop.split("->")[1];

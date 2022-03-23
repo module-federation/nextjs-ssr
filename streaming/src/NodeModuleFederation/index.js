@@ -1,13 +1,15 @@
-'use strict';
+"use strict";
 
 const executeLoadTemplate = `
     function executeLoad(remoteUrl) {
         const scriptUrl = remoteUrl.split("@")[1];
         const moduleName = remoteUrl.split("@")[0];
         return new Promise(function (resolve, reject) {
+          const fetch = require('node-fetch');
           fetch(scriptUrl).then(function(res){
             return res.text();
           }).then(function(scriptContent){
+         
           // const remote = eval(scriptContent + '\\n  try{' + moduleName + '}catch(e) { null; };');
             try {
               const remote = eval('let exports = {};' + scriptContent + 'exports');
@@ -21,13 +23,14 @@ const executeLoadTemplate = `
             console.error(e);
             reject(null)
           })
-        }).catch(()=>{
+        }).catch((e)=>{
+        console.error('error',e);
           console.warn(moduleName,'is offline, returning fake remote')
           return {
             fake: true,
             get:(arg)=>{
               console.log('faking', arg,'module on', moduleName);
-         
+
               return ()=> Promise.resolve();
             },
             init:()=>{}
@@ -50,13 +53,7 @@ function buildRemotes(mfConf, webpack) {
       } ? ${
         webpack.RuntimeGlobals.require
       } : typeof arguments !== 'undefined' ? arguments[2] : false;
-
-        // if using modern output, then there are no arguments on the parent function scope, thus we need to get it via a window global. 
-        var shareScope = (${webpack.RuntimeGlobals.require} && ${
-        webpack.RuntimeGlobals.shareScopeMap
-      }) ? ${
-        webpack.RuntimeGlobals.shareScopeMap
-      } : global.__webpack_share_scopes__
+        
 
         ${builtinsTemplate}
 
@@ -67,6 +64,13 @@ function buildRemotes(mfConf, webpack) {
         }
 
         executeLoad("${config}").then((remote) => {
+          // if using modern output, then there are no arguments on the parent function scope, thus we need to get it via a window global.
+          var shareScope = (${webpack.RuntimeGlobals.require} && ${
+        webpack.RuntimeGlobals.shareScopeMap
+      }) ? ${
+        webpack.RuntimeGlobals.shareScopeMap
+      } : global.__webpack_share_scopes__
+
           return Promise.resolve(remote.init(shareScope.default)).then(() => {
             return remote
           })
@@ -88,11 +92,11 @@ function buildRemotes(mfConf, webpack) {
               res(proxy);
               return null
             }
-            
+
             Object.assign(global.loadedRemotes, {
               ${JSON.stringify(name)}: proxy
             });
-            
+
             res(global.loadedRemotes[${JSON.stringify(name)}])
           })
 
