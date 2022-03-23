@@ -6,6 +6,7 @@ const executeLoadTemplate = `
         const moduleName = remoteUrl.split("@")[0];
         return new Promise(function (resolve, reject) {
           const fetch = require('node-fetch');
+          console.log(scriptUrl);
           fetch(scriptUrl).then(function(res){
             return res.text();
           }).then(function(scriptContent){
@@ -46,8 +47,15 @@ function buildRemotes(mfConf, webpack) {
 
   return Object.entries(mfConf.remotes || {}).reduce(
     (acc, [name, config]) => {
+      const hasMiddleware = config.startsWith("middleware ");
+      let middleware;
+      if (hasMiddleware) {
+        middleware = config.split("middleware ")[1];
+      } else {
+        middleware = Promise.resolve(config);
+      }
       //language=JS
-      const template = `new Promise((res) => {
+      const template = (remotesConfig)=> `new Promise((res) => {
         var ${webpack.RuntimeGlobals.require} = ${
         webpack.RuntimeGlobals.require
       } ? ${
@@ -63,7 +71,7 @@ function buildRemotes(mfConf, webpack) {
           return
         }
 
-        executeLoad("${config}").then((remote) => {
+        executeLoad("${remotesConfig}").then((remote) => {
           // if using modern output, then there are no arguments on the parent function scope, thus we need to get it via a window global.
           var shareScope = (${webpack.RuntimeGlobals.require} && ${
         webpack.RuntimeGlobals.shareScopeMap
@@ -79,7 +87,7 @@ function buildRemotes(mfConf, webpack) {
             const proxy = {
               get: remote.get,
               chunkMap: remote.chunkMap,
-              path: "${config}",
+              path: "${remotesConfig}",
               init: (arg) => {
                 try {
                   return remote.init(shareScope.default)
@@ -102,9 +110,17 @@ function buildRemotes(mfConf, webpack) {
 
 
       })`;
-      acc.runtime[name] = `()=> ${template}`;
-      acc.buildTime[name] = `promise ${template}`;
-      acc.hot[name] = `"${config}"`;
+
+      acc.runtime[name] = `()=> ${middleware}.then((remoteConfig)=>{
+    console.log('remoteConfig',remoteConfig);
+   return  ${template}(remoteConfig)
+    })`;
+      acc.buildTime[name] = `promise ${middleware}.then((remoteConfig)=>{
+    console.log('remoteConfig',remoteConfig);
+   return  ${template}(remoteConfig)
+    })`;
+
+      acc.hot[name] = `"${middleware}"`;
       return acc;
     },
     { runtime: {}, buildTime: {}, hot: {} }
