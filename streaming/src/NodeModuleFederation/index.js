@@ -4,6 +4,7 @@ const executeLoadTemplate = `
     function executeLoad(remoteUrl) {
         const scriptUrl = remoteUrl.split("@")[1];
         const moduleName = remoteUrl.split("@")[0];
+        console.log("executing remote load", scriptUrl);
         return new Promise(function (resolve, reject) {
    
          (global.webpackChunkLoad || fetch)(scriptUrl).then(function(res){
@@ -47,7 +48,7 @@ function buildRemotes(mfConf, webpack) {
       if (hasMiddleware) {
         middleware = config.split("middleware ")[1];
       } else {
-        middleware = Promise.resolve(config);
+        middleware = `Promise.resolve(${JSON.stringify(config)})`
       }
 
       const templateStart = `
@@ -59,7 +60,7 @@ function buildRemotes(mfConf, webpack) {
                ${executeLoadTemplate}
         global.loadedRemotes = global.loadedRemotes || {};
         if (global.loadedRemotes[${JSON.stringify(name)}]) {
-          return global.loadedRemotes[${JSON.stringify(name)}])
+          return global.loadedRemotes[${JSON.stringify(name)}]
         }
         // if using modern output, then there are no arguments on the parent function scope, thus we need to get it via a window global.
 
@@ -70,9 +71,10 @@ function buildRemotes(mfConf, webpack) {
       } : global.__webpack_share_scopes__
       var name = ${JSON.stringify(name)}
       `;
-      const template = (remotesConfig) => `new Promise((res) => {
-        executeLoad("${remotesConfig}").then((remote) => {
-
+      const template = `(remotesConfig) => new Promise((res) => {
+      console.log('in template promise',JSON.stringify(remotesConfig))
+        executeLoad(remotesConfig).then((remote) => {
+console.log('after execute load',   remote)
           return Promise.resolve(remote.init(shareScope.default)).then(() => {
             return remote
           })
@@ -81,7 +83,7 @@ function buildRemotes(mfConf, webpack) {
             const proxy = {
               get: remote.get,
               chunkMap: remote.chunkMap,
-              path: "${remotesConfig}",
+              path: remotesConfig.toString(),
               init: (arg) => {
                 try {
                   return remote.init(shareScope.default)
@@ -105,26 +107,26 @@ function buildRemotes(mfConf, webpack) {
 
       })`;
 
-      acc.runtime[name] = `()=> ${hasMiddleware ? middleware : middleware.toString()}.then((remoteConfig)=>{
-    console.log('remoteConfig',remoteConfig);
+
+
+      acc.runtime[name] = `()=> ${middleware}.then((remoteConfig)=>{
+    console.log('remoteConfig runtime',remoteConfig);
     global.REMOTE_CONFIG[${JSON.stringify(name)}] = remoteConfig;
     ${templateStart}
-    return ${template}(remoteConfig)
+    const loadTemplate = ${template};
+    return loadTemplate(remoteConfig)
     })`;
-      acc.buildTime[name] = `promise ${hasMiddleware ? middleware : middleware.toString()}.then((remoteConfig)=>{
-    console.log('remoteConfig',remoteConfig);
+      acc.buildTime[name] = `promise ${middleware}.then((remoteConfig)=>{
+    console.log('remoteConfig buildtime',remoteConfig);
     global.REMOTE_CONFIG[${JSON.stringify(name)}] = remoteConfig;
     ${templateStart};
-    return  ${template}(remoteConfig)
+    const loadTemplate = ${template};
+    return loadTemplate(remoteConfig)
     })`;
 
-      if (!hasMiddleware) {
-        console.log("has no middleware");
-        acc.hot[name] = `()=> ${JSON.stringify(config)}`;
-      } else {
-        console.log("has middl");
-        acc.hot[name] = `()=> ${middleware.toString()}`;
-      }
+
+    acc.hot[name] = `()=> ${middleware}`;
+
       return acc;
     },
     { runtime: {}, buildTime: {}, hot: {} }
