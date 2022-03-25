@@ -5,9 +5,8 @@ const executeLoadTemplate = `
         const scriptUrl = remoteUrl.split("@")[1];
         const moduleName = remoteUrl.split("@")[0];
         return new Promise(function (resolve, reject) {
-          const fetch = require('node-fetch');
-          console.log(scriptUrl);
-          fetch(scriptUrl).then(function(res){
+   
+         (global.webpackChunkLoad || fetch)(scriptUrl).then(function(res){
             return res.text();
           }).then(function(scriptContent){
          
@@ -41,10 +40,6 @@ const executeLoadTemplate = `
 `;
 
 function buildRemotes(mfConf, webpack) {
-  const builtinsTemplate = `
-    ${executeLoadTemplate}
-  `;
-
   return Object.entries(mfConf.remotes || {}).reduce(
     (acc, [name, config]) => {
       const hasMiddleware = config.startsWith("middleware ");
@@ -54,30 +49,29 @@ function buildRemotes(mfConf, webpack) {
       } else {
         middleware = Promise.resolve(config);
       }
-      //language=JS
-      const template = (remotesConfig)=> `new Promise((res) => {
-        var ${webpack.RuntimeGlobals.require} = ${
+
+      const templateStart = `
+              var ${webpack.RuntimeGlobals.require} = ${
         webpack.RuntimeGlobals.require
       } ? ${
         webpack.RuntimeGlobals.require
       } : typeof arguments !== 'undefined' ? arguments[2] : false;
-        
-
-        ${builtinsTemplate}
-
+               ${executeLoadTemplate}
         global.loadedRemotes = global.loadedRemotes || {};
         if (global.loadedRemotes[${JSON.stringify(name)}]) {
-          res(global.loadedRemotes[${JSON.stringify(name)}])
-          return
+          return global.loadedRemotes[${JSON.stringify(name)}])
         }
+        // if using modern output, then there are no arguments on the parent function scope, thus we need to get it via a window global.
 
-        executeLoad("${remotesConfig}").then((remote) => {
-          // if using modern output, then there are no arguments on the parent function scope, thus we need to get it via a window global.
-          var shareScope = (${webpack.RuntimeGlobals.require} && ${
+      var shareScope = (${webpack.RuntimeGlobals.require} && ${
         webpack.RuntimeGlobals.shareScopeMap
       }) ? ${
         webpack.RuntimeGlobals.shareScopeMap
       } : global.__webpack_share_scopes__
+      var name = ${JSON.stringify(name)}
+      `;
+      const template = (remotesConfig) => `new Promise((res) => {
+        executeLoad("${remotesConfig}").then((remote) => {
 
           return Promise.resolve(remote.init(shareScope.default)).then(() => {
             return remote
@@ -102,25 +96,35 @@ function buildRemotes(mfConf, webpack) {
             }
 
             Object.assign(global.loadedRemotes, {
-              ${JSON.stringify(name)}: proxy
+              [name]: proxy
             });
 
-            res(global.loadedRemotes[${JSON.stringify(name)}])
+            res(global.loadedRemotes[name])
           })
 
 
       })`;
 
-      acc.runtime[name] = `()=> ${middleware}.then((remoteConfig)=>{
+      acc.runtime[name] = `()=> ${hasMiddleware ? middleware : middleware.toString()}.then((remoteConfig)=>{
     console.log('remoteConfig',remoteConfig);
-   return  ${template}(remoteConfig)
+    global.REMOTE_CONFIG[${JSON.stringify(name)}] = remoteConfig;
+    ${templateStart}
+    return ${template}(remoteConfig)
     })`;
-      acc.buildTime[name] = `promise ${middleware}.then((remoteConfig)=>{
+      acc.buildTime[name] = `promise ${hasMiddleware ? middleware : middleware.toString()}.then((remoteConfig)=>{
     console.log('remoteConfig',remoteConfig);
-   return  ${template}(remoteConfig)
+    global.REMOTE_CONFIG[${JSON.stringify(name)}] = remoteConfig;
+    ${templateStart};
+    return  ${template}(remoteConfig)
     })`;
 
-      acc.hot[name] = `"${middleware}"`;
+      if (!hasMiddleware) {
+        console.log("has no middleware");
+        acc.hot[name] = `()=> ${JSON.stringify(config)}`;
+      } else {
+        console.log("has middl");
+        acc.hot[name] = `()=> ${middleware.toString()}`;
+      }
       return acc;
     },
     { runtime: {}, buildTime: {}, hot: {} }
