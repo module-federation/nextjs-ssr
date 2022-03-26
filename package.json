@@ -19,8 +19,6 @@
   "dependencies": {
     "chalk": "4.1.2",
     "encoding": "^0.1.13",
-    "findup": "^0.1.5",
-    "findup-sync": "^5.0.0",
     "lodash.clonedeep": "^4.5.0",
     "webpack-federated-stats-plugin": "^2.0.9"
   },
