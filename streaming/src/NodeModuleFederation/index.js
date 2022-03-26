@@ -48,7 +48,7 @@ function buildRemotes(mfConf, webpack) {
       if (hasMiddleware) {
         middleware = config.split("middleware ")[1];
       } else {
-        middleware = `Promise.resolve(${JSON.stringify(config)})`
+        middleware = `Promise.resolve(${JSON.stringify(config)})`;
       }
 
       const templateStart = `
@@ -107,8 +107,6 @@ console.log('after execute load',   remote)
 
       })`;
 
-
-
       acc.runtime[name] = `()=> ${middleware}.then((remoteConfig)=>{
     console.log('remoteConfig runtime',remoteConfig);
     global.REMOTE_CONFIG[${JSON.stringify(name)}] = remoteConfig;
@@ -124,8 +122,7 @@ console.log('after execute load',   remote)
     return loadTemplate(remoteConfig)
     })`;
 
-
-    acc.hot[name] = `()=> ${middleware}`;
+      acc.hot[name] = `()=> ${middleware}`;
 
       return acc;
     },
