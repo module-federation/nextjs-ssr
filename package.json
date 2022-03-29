@@ -9,7 +9,7 @@
   "author": "Zack Jackson <zackary.l.jackson@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "prettier": "prettier --write \"**/*.{js,json,md,ts,tsx}\" --embedded-language-formatting=auto",
+    "prettier": "prettier --write \"**/*.{js,json,md,ts,tsx}\"",
     "build": "rollup --config rollup.config.js && rollup --config rollup.flushchunks.config.js",
     "prepublishOnly": "yarn build"
   },
