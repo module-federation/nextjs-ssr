@@ -74,7 +74,7 @@ function buildRemotes(mfConf, webpack) {
       const template = `(remotesConfig) => new Promise((res) => {
       console.log('in template promise',JSON.stringify(remotesConfig))
         executeLoad(remotesConfig).then((remote) => {
-console.log('after execute load',   remote)
+
           return Promise.resolve(remote.init(shareScope.default)).then(() => {
             return remote
           })
