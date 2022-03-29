@@ -1,4 +1,0 @@
-name: nextjs-ssr
-packages:
-  - path: lib
-  - path: streaming/src
