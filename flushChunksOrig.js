@@ -228,7 +228,7 @@ const revalidate = (options) => {
     return new Promise((res) => {
       const { poll, timeout } = Object.assign(
         {
-          poll: process.env.NODE_ENV === "development",
+          poll: false,
           timeout: 3000,
         },
         options
@@ -282,9 +282,7 @@ const revalidate = (options) => {
       } else {
         req = __non_webpack_require__;
       }
-      if (callback) {
-        callback();
-      }
+
       if (global.hotLoad) {
         global.hotLoad();
       }
