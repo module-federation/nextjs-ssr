@@ -179,13 +179,7 @@ module.exports = withFederatedSidecar({
   exposes: {
     "./sampleComponent": "./components/sampleComponent.js",
   },
-  shared: {
-    react: {
-      // Notice shared are NOT eager here.
-      requiredVersion: false,
-      singleton: true,
-    },
-  },
+  shared: {},
 })({
   webpack(config, options) {
     // your original next.config.js export
@@ -234,12 +228,7 @@ withFederatedSidecar(
     filename: "static/chunks/remoteEntry.js",
     exposes: {},
     remotes: {},
-    shared: {
-      react: {
-        requiredVersion: false,
-        singleton: true,
-      },
-    },
+    shared: {},
   },
   // sidecar specific options
   {
