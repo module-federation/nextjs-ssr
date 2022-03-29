@@ -225,7 +225,7 @@ var interval;
 const hashmap = {};
 const revalidate = (options) => {
   if (global.REMOTE_CONFIG) {
-    return new Promise((res) => {
+    return new Promise(async (res) => {
       const { poll, timeout } = Object.assign(
         {
           poll: false,
@@ -243,10 +243,13 @@ const revalidate = (options) => {
           revalidate(options);
         }, timeout);
       }
-      console.log(" global.REMOTE_CONFIG", global.REMOTE_CONFIG);
-
       for (const property in global.REMOTE_CONFIG) {
-        const [name, url] = global.REMOTE_CONFIG[property].split("@");
+        let remote = global.REMOTE_CONFIG[property];
+        if (typeof remote === "function") {
+          remote = await remote();
+        }
+        console.log("flush chunks: ", remote);
+        const [name, url] = remote.split("@");
         fetch(url)
           .then((re) => re.text())
           .then((contents) => {
