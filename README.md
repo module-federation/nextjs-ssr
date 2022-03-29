@@ -333,17 +333,16 @@ import {
   ExtendedHead,
   revalidate,
   flushChunks,
-  DevHotScript,
 } from "@module-federation/nextjs-ssr/flushChunks";
 
 class MyDocument extends Document {
   static async getInitialProps(ctx) {
     // could also be on "close"
     ctx?.res?.on("finish", () => {
-      revalidate().then(() => {
+      revalidate().then((willReload) => {
         // choose any additional steps you want to take.
         // the promise will only resolve if remotes have changed and a hot reload needs to happen
-        if (process.env.NODE_ENV === "development") {
+        if (process.env.NODE_ENV === "development" && willReload) {
           setTimeout(() => {
             // useful for dev or if you want to cold start lambdas.
             process.exit(1);
@@ -366,7 +365,6 @@ class MyDocument extends Document {
           <meta name="robots" content="noindex" />
           {Object.values(this.props.remoteChunks)}
         </ExtendedHead>
-        <DevHotScript />
         <body className="bg-background-grey">
           <Main />
           <NextScript />
