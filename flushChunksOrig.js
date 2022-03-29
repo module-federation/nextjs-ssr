@@ -124,7 +124,6 @@ const flushChunks = async (remoteEnvVar = process.env.REMOTES) => {
       if (foundFederatedImport) {
         const remotePreload = remoteEnvVar[foundFederatedImport]().then(
           (remoteContainer) => {
-            console.log(remoteContainer)
             Object.assign(
               remotes,
               generateDynamicRemoteScript(remoteContainer)
@@ -244,7 +243,7 @@ const revalidate = (options) => {
           revalidate(options);
         }, timeout);
       }
-      console.log(' global.REMOTE_CONFIG', global.REMOTE_CONFIG)
+      console.log(" global.REMOTE_CONFIG", global.REMOTE_CONFIG);
 
       for (const property in global.REMOTE_CONFIG) {
         const [name, url] = global.REMOTE_CONFIG[property].split("@");
