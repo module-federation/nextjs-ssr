@@ -18,6 +18,6 @@ export default {
       dirname: false,
     }),
     builtins(),
-    // obfuscator(),
+    obfuscator(),
   ],
 };
