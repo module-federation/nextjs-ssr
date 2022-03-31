@@ -295,6 +295,7 @@ const revalidate = (options) => {
           k.includes("remote") ||
           k.includes("runtime") ||
           k.includes("server") ||
+          k.includes("serverless") ||
           k.includes("flushChunks") ||
           k.includes("react-loadable-manifest")
         ) {

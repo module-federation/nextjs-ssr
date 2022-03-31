@@ -233,7 +233,7 @@ class ReadFileChunkLoadingRuntimeModule extends RuntimeModule {
                             )}]`,
 
                             `if(typeof requestedRemote === 'function'){
-                              requestedRemote = await requestedRemote()
+                              requestedRemote = await requestedRemote();
                             }`,
                             `console.log('requestedRemote',requestedRemote);`,
 
