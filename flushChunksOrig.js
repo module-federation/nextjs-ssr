@@ -54,8 +54,7 @@ if (!foundNextFolder) {
   });
 }
 const manifestPath =
-  foundNextFolder.split(".next")[0] + ".next/react-loadable-manifest.json";
-
+  path.join(foundNextFolder.split(".next")[0], ".next/react-loadable-manifest.json")
 let remotes = {};
 const loadableManifest = requireMethod(manifestPath);
 requireMethod.cache[manifestPath].exports = new Proxy(loadableManifest, {
@@ -321,7 +320,7 @@ const DevHotScript = () => {
         const startLoadTimeout = ()=> {loadTimeout = setTimeout(()=>window.location.reload(),1500);}
         const loadAfterHot =()=>{
         fetch(window.location.href,{method:'HEAD'}).then(()=>{clearTimeout(loadTimeout)}).catch(()=>{clearTimeout(loadTimeout); startLoadTimeout(); setTimeout(loadAfterHot,1000)})
-        }; 
+        };
         window.addEventListener('load', (event) => {
          if(!window.next) {loadAfterHot()}
         });
