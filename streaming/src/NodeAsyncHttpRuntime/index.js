@@ -23,11 +23,11 @@ class NodeSoftwareStreamRuntime {
     // Disable default config
     compiler.options.output.enabledChunkLoadingTypes = false;
 
-    new (webpack?.node.NodeEnvironmentPlugin ||
+    new ((webpack && webpack.node && webpack.node.NodeEnvironmentPlugin) ||
       require("webpack/lib/node/NodeEnvironmentPlugin"))({
       infrastructureLogging: compiler.options.infrastructureLogging,
     }).apply(compiler);
-    new (webpack?.node.NodeTargetPlugin ||
+    new ((webpack && webpack.node && webpack.node.NodeTargetPlugin) ||
       require("webpack/lib/node/NodeTargetPlugin"))().apply(compiler);
     new CommonJsChunkLoadingPlugin(
       {

@@ -2,7 +2,6 @@ const React = require("react");
 const { Head } = require("next/document");
 const path = require("path");
 const crypto = require("crypto");
-
 const generateDynamicRemoteScript = (remoteContainer) => {
   const [name, path] = remoteContainer.path.split("@");
   const remoteUrl = new URL(path.replace("ssr", "chunks"));
@@ -45,16 +44,20 @@ const requireMethod =
   typeof __non_webpack_require__ !== "undefined"
     ? __non_webpack_require__
     : require;
-const requestPath = path.join(
-  process.cwd(),
-  ".next",
-  "server/pages",
-  "../../react-loadable-manifest.json"
-);
 
+let foundNextFolder = null;
+if (!foundNextFolder) {
+  foundNextFolder = Object.keys(requireMethod.cache).find((key) => {
+    if (key.includes(".next")) {
+      return true;
+    }
+  });
+}
+const manifestPath =
+  path.join(foundNextFolder.split(".next")[0], ".next/react-loadable-manifest.json")
 let remotes = {};
-const loadableManifest = requireMethod(requestPath);
-requireMethod.cache[requestPath].exports = new Proxy(loadableManifest, {
+const loadableManifest = requireMethod(manifestPath);
+requireMethod.cache[manifestPath].exports = new Proxy(loadableManifest, {
   get(target, prop, receiver) {
     if (!target[prop]) {
       let remoteImport = prop.split("->")[1];
@@ -221,10 +224,10 @@ var interval;
 const hashmap = {};
 const revalidate = (options) => {
   if (global.REMOTE_CONFIG) {
-    return new Promise((res) => {
+    return new Promise(async (res) => {
       const { poll, timeout } = Object.assign(
         {
-          poll: process.env.NODE_ENV === "development",
+          poll: false,
           timeout: 3000,
         },
         options
@@ -239,9 +242,13 @@ const revalidate = (options) => {
           revalidate(options);
         }, timeout);
       }
-
       for (const property in global.REMOTE_CONFIG) {
-        const [name, url] = global.REMOTE_CONFIG[property].split("@");
+        let remote = global.REMOTE_CONFIG[property];
+        if (typeof remote === "function") {
+          remote = await remote();
+        }
+        console.log("flush chunks: ", remote);
+        const [name, url] = remote.split("@");
         fetch(url)
           .then((re) => re.text())
           .then((contents) => {
@@ -277,6 +284,7 @@ const revalidate = (options) => {
       } else {
         req = __non_webpack_require__;
       }
+
       if (global.hotLoad) {
         global.hotLoad();
       }
@@ -295,7 +303,9 @@ const revalidate = (options) => {
     });
   }
 
-  return new Promise((res, rej) => {});
+  return new Promise((res, rej) => {
+    res(false);
+  });
 };
 
 const DevHotScript = () => {
@@ -310,7 +320,7 @@ const DevHotScript = () => {
         const startLoadTimeout = ()=> {loadTimeout = setTimeout(()=>window.location.reload(),1500);}
         const loadAfterHot =()=>{
         fetch(window.location.href,{method:'HEAD'}).then(()=>{clearTimeout(loadTimeout)}).catch(()=>{clearTimeout(loadTimeout); startLoadTimeout(); setTimeout(loadAfterHot,1000)})
-        }; 
+        };
         window.addEventListener('load', (event) => {
          if(!window.next) {loadAfterHot()}
         });

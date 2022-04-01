@@ -45,7 +45,6 @@ class ReadFileChunkLoadingRuntimeModule extends RuntimeModule {
   generate() {
     const { baseURI, promiseBaseURI, remotes, name } = this.options;
     const { webpack } = this.context;
-
     const chunkHasJs =
       (webpack && webpack.javascript.JavascriptModulesPlugin.chunkHasJs) ||
       require("webpack/lib/javascript/JavascriptModulesPlugin").chunkHasJs;
@@ -178,7 +177,7 @@ class ReadFileChunkLoadingRuntimeModule extends RuntimeModule {
                         : `if(${hasJsMatcher("chunkId")}) {`,
                       Template.indent([
                         "// load the chunk and return promise to it",
-                        "var promise = new Promise(function(resolve, reject) {",
+                        "var promise = new Promise(async function(resolve, reject) {",
                         Template.indent([
                           "installedChunkData = installedChunks[chunkId] = [resolve, reject];",
                           `var filename = require('path').join(__dirname, ${JSON.stringify(
@@ -203,22 +202,47 @@ class ReadFileChunkLoadingRuntimeModule extends RuntimeModule {
                           "} else {",
                           Template.indent([
                             loadScriptTemplate,
+
                             "console.log('needs to load remote script');",
-                            "console.log('loadScript exists',loadScript);",
+
+                            `console.log('before remote var creation')`,
+                            `console.log('before remote var creation', ${JSON.stringify(
+                              remotes
+                            )})`,
                             `var remotes = ${JSON.stringify(remotes)};`,
+
+                            `console.log('remotes in chunk load',remotes)`,
+
+                            `console.log('global.REMOTE_CONFIG',global.REMOTE_CONFIG)`,
+
                             `if(global.REMOTE_CONFIG && !global.REMOTE_CONFIG[${JSON.stringify(
                               name
-                            )}]) {`,
+                            )}]) {
+                            if(global.loadedRemotes){
+                              for (const property in global.loadedRemotes) {
+                                global.REMOTE_CONFIG[property] = global.loadedRemotes[property].path
+                              }
+                            }`,
                             Template.indent([
                               `Object.assign(global.REMOTE_CONFIG, remotes)`,
                             ]),
                             "}",
+
                             `var requestedRemote = global.REMOTE_CONFIG[${JSON.stringify(
                               name
                             )}]`,
+
+                            `if(typeof requestedRemote === 'function'){
+                              requestedRemote = await requestedRemote()
+                            }`,
+                            `console.log('requestedRemote',requestedRemote);`,
+
                             `var scriptUrl = new URL(requestedRemote.split("@")[1]);`,
+
                             `var chunkName = ${RuntimeGlobals.getChunkScriptFilename}(chunkId);`,
+
                             `console.log('remotes global',global.REMOTE_CONFIG);`,
+
                             `console.log('chunkname to request',chunkName);`,
                             `var fileToReplace = require('path').basename(scriptUrl.pathname);`,
                             `scriptUrl.pathname = scriptUrl.pathname.replace(fileToReplace, chunkName);`,

@@ -1,14 +1,19 @@
+"use strict";
+
 const executeLoadTemplate = `
     function executeLoad(remoteUrl) {
         const scriptUrl = remoteUrl.split("@")[1];
         const moduleName = remoteUrl.split("@")[0];
+        console.log("executing remote load", scriptUrl);
         return new Promise(function (resolve, reject) {
-          fetch(scriptUrl).then(function(res){
-            return res.text()
+   
+         (global.webpackChunkLoad || fetch)(scriptUrl).then(function(res){
+            return res.text();
           }).then(function(scriptContent){
+         
           // const remote = eval(scriptContent + '\\n  try{' + moduleName + '}catch(e) { null; };');
             try {
-              const remote = eval('let exports = {};' + scriptContent + 'exports')
+              const remote = eval('let exports = {};' + scriptContent + 'exports');
               resolve(remote[moduleName])
             } catch(e) {
               console.error('problem executing remote module', moduleName);
@@ -19,13 +24,14 @@ const executeLoadTemplate = `
             console.error(e);
             reject(null)
           })
-        }).catch(()=>{
+        }).catch((e)=>{
+        console.error('error',e);
           console.warn(moduleName,'is offline, returning fake remote')
           return {
             fake: true,
             get:(arg)=>{
               console.log('faking', arg,'module on', moduleName);
-         
+
               return ()=> Promise.resolve();
             },
             init:()=>{}
@@ -35,65 +41,89 @@ const executeLoadTemplate = `
 `;
 
 function buildRemotes(mfConf, webpack) {
-  const builtinsTemplate = `
-    ${executeLoadTemplate}
-  `;
-
   return Object.entries(mfConf.remotes || {}).reduce(
     (acc, [name, config]) => {
-      const template = `new Promise((res) => {
-      var ${webpack.RuntimeGlobals.require} = ${
+      const hasMiddleware = config.startsWith("middleware ");
+      let middleware;
+      if (hasMiddleware) {
+        middleware = config.split("middleware ")[1];
+      } else {
+        middleware = `Promise.resolve(${JSON.stringify(config)})`;
+      }
+
+      const templateStart = `
+              var ${webpack.RuntimeGlobals.require} = ${
         webpack.RuntimeGlobals.require
       } ? ${
         webpack.RuntimeGlobals.require
       } : typeof arguments !== 'undefined' ? arguments[2] : false;
-      
-    // if using modern output, then there are no arguments on the parent function scope, thus we need to get it via a window global. 
-          var shareScope = (${webpack.RuntimeGlobals.require} && ${
+               ${executeLoadTemplate}
+        global.loadedRemotes = global.loadedRemotes || {};
+        if (global.loadedRemotes[${JSON.stringify(name)}]) {
+          return global.loadedRemotes[${JSON.stringify(name)}]
+        }
+        // if using modern output, then there are no arguments on the parent function scope, thus we need to get it via a window global.
+
+      var shareScope = (${webpack.RuntimeGlobals.require} && ${
         webpack.RuntimeGlobals.shareScopeMap
       }) ? ${
         webpack.RuntimeGlobals.shareScopeMap
       } : global.__webpack_share_scopes__
-      
-        ${builtinsTemplate}
+      var name = ${JSON.stringify(name)}
+      `;
+      const template = `(remotesConfig) => new Promise((res) => {
+      console.log('in template promise',JSON.stringify(remotesConfig))
+        executeLoad(remotesConfig).then((remote) => {
 
-        global.loadedRemotes = global.loadedRemotes || {};
-
-        if(global.loadedRemotes[${JSON.stringify(name)}]) {
-          res(global.loadedRemotes[${JSON.stringify(name)}])
-          return 
-        }
-        
-        executeLoad("${config}").then((remote)=>{
-          return Promise.resolve(remote.init(shareScope.default)).then(()=>{
+          return Promise.resolve(remote.init(shareScope.default)).then(() => {
             return remote
           })
         })
-        .then(function(remote){
-          const proxy= {
-            get: remote.get,
-            chunkMap: remote.chunkMap,
-            path: "${config}",
-            init:(arg)=>{
-            try {
-              return remote.init(shareScope.default)
-            } catch(e){console.log('remote container already initialized')}}
-          }
-          
-          if(remote.fake) {
-            res(proxy);
-            return null
-          }
-          Object.assign(global.loadedRemotes,{${JSON.stringify(name)}: proxy});
-     
-          res(global.loadedRemotes[${JSON.stringify(name)}])
-        })
+          .then(function (remote) {
+            const proxy = {
+              get: remote.get,
+              chunkMap: remote.chunkMap,
+              path: remotesConfig.toString(),
+              init: (arg) => {
+                try {
+                  return remote.init(shareScope.default)
+                } catch (e) {
+                  console.log('remote container already initialized')
+                }
+              }
+            }
+            if (remote.fake) {
+              res(proxy);
+              return null
+            }
 
-     
+            Object.assign(global.loadedRemotes, {
+              [name]: proxy
+            });
+
+            res(global.loadedRemotes[name])
+          })
+
+
       })`;
-      acc.runtime[name] = `()=> ${template}`;
-      acc.buildTime[name] = `promise ${template}`;
-      acc.hot[name] = `"${config}"`;
+
+      acc.runtime[name] = `()=> ${middleware}.then((remoteConfig)=>{
+    console.log('remoteConfig runtime',remoteConfig);
+    global.REMOTE_CONFIG[${JSON.stringify(name)}] = remoteConfig;
+    ${templateStart}
+    const loadTemplate = ${template};
+    return loadTemplate(remoteConfig)
+    })`;
+      acc.buildTime[name] = `promise ${middleware}.then((remoteConfig)=>{
+    console.log('remoteConfig buildtime',remoteConfig);
+    global.REMOTE_CONFIG[${JSON.stringify(name)}] = remoteConfig;
+    ${templateStart};
+    const loadTemplate = ${template};
+    return loadTemplate(remoteConfig)
+    })`;
+
+      acc.hot[name] = `()=> ${middleware}`;
+
       return acc;
     },
     { runtime: {}, buildTime: {}, hot: {} }
@@ -106,6 +136,7 @@ class StreamingFederation {
     this.context = context || {};
     this.experiments = experiments || {};
   }
+
   apply(compiler) {
     // When used with Next.js, context is needed to use Next.js webpack
     const { webpack } = this.context;
@@ -118,9 +149,7 @@ class StreamingFederation {
       "process.env.REMOTES": runtime,
     };
     if (this.experiments.hot) {
-      Object.assign(defs, {
-        "process.env.REMOTE_CONFIG": hot,
-      });
+      defs["process.env.REMOTE_CONFIG"] = hot;
     }
     new ((webpack && webpack.DefinePlugin) || require("webpack").DefinePlugin)(
       defs
