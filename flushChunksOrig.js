@@ -4,7 +4,8 @@ const path = require("path");
 const crypto = require("crypto");
 const generateDynamicRemoteScript = (remoteContainer) => {
   const [name, path] = remoteContainer.path.split("@");
-  const remoteUrl = new URL(path.replace("ssr", "chunks"));
+  const remoteUrl = new URL(path);
+  remoteUrl.pathname = remoteUrl.pathname.replace("ssr", "chunks");
   remoteUrl.searchParams.set("cbust", Date.now());
   return {
     [name]: React.createElement("script", {
