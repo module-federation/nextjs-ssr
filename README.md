@@ -118,7 +118,7 @@ Make sure you are using `mini-css-extract-plugin@2` - version 2 supports resolvi
 const remotes = (isServer) => {
   const location = isServer ? "ssr" : "chunks";
   return {
-    next1: `next1@https://someapp.com/_next/static/${location}/remoteEntry.js?${Date.now()}`,
+    next1: `next1@https://someapp.com/_next/static/${location}/remoteEntry.js`,
   };
 };
 withFederatedSidecar(
@@ -164,35 +164,46 @@ You can see it in action here: https://github.com/module-federation/module-feder
 1. Use `withFederatedSidecar` in your `next.config.js` of the app that you wish to expose modules from. We'll call this "next2".
 
 ```js
+// next2
 // next.config.js
 const { withFederatedSidecar } = require("@module-federation/nextjs-ssr");
+const withPlugins = require("next-compose-plugins");
+
 const remotes = (isServer) => {
   const location = isServer ? "ssr" : "chunks";
   return {
-    next1: `next1@https://someapp.com/_next/static/${location}/remoteEntry.js?${Date.now()}`,
+    next1: `next1@https://someapp.com/_next/static/${location}/remoteEntry.js`,
   };
 };
-module.exports = withFederatedSidecar({
-  name: "next2",
-  filename: "static/chunks/remoteEntry.js",
-  remotes,
-  exposes: {
-    "./sampleComponent": "./components/sampleComponent.js",
-  },
-  shared: {},
-})({
-  webpack(config, options) {
-    // your original next.config.js export
 
-    // we attach next internals to share scope at runtime
+const nextConfig = {
+  // your original next.config.js export
+  // we attach next internals to share scope at runtime
+
+  webpack(config, options) {
+    const { webpack, isServer } = options;
     config.module.rules.push({
       test: [/_app.[jt]sx?/, /_document.[jt]sx?/],
       loader: "@module-federation/nextjs-ssr/lib/federation-loader.js",
     });
 
     return config;
-  },
-});
+};
+
+module.exports = withPlugins(
+  [
+    withFederatedSidecar({
+      name: "next2",
+      filename: "static/chunks/remoteEntry.js",
+      remotes: remotes,
+      exposes: {
+        "./sampleComponent": "./components/sampleComponent.js",
+      },
+      shared: {},
+    })
+  ],
+  nextConfig
+);
 ```
 
 Consuming/host applications you must at least add the loader to next.config.js, and ensure you have a [custom Next.js App](https://nextjs.org/docs/advanced-features/custom-app) `pages/_app.js` (or `.tsx`):
@@ -216,7 +227,7 @@ module.exports = {
 **Chunk Flushing**
 
 Chunk Flushing is the mechanism used to _flush_ dynamic imported chunks out of a render and into the HTML of a document.
-If you want to SSR the `<script>` tags of federated imports, reducing Round Trip Time (RTT). You can enable the following experiment
+If you want to SSR the `<script>` tags of federated imports, reducing Round Trip Time (RTT), you can enable the following experiment
 
 1. Enable the flushChunk experiment via the plugin
 
@@ -224,7 +235,7 @@ If you want to SSR the `<script>` tags of federated imports, reducing Round Trip
 withFederatedSidecar(
   // normal MF config
   {
-    name: "app1",
+    name: "next1",
     filename: "static/chunks/remoteEntry.js",
     exposes: {},
     remotes: {},
@@ -239,10 +250,10 @@ withFederatedSidecar(
 );
 ```
 
-2. Inside `_document.js` do the following
+2. Inside `_document.js` (or `.tsx`) do the following:
 
 ```js
-import Document, { Html, Head, Main, NextScript } from "next/document";
+import Document, { Html, Main, NextScript } from "next/document";
 import {
   flushChunks,
   ExtendedHead,
@@ -251,19 +262,20 @@ import {
 class MyDocument extends Document {
   static async getInitialProps(ctx) {
     const initialProps = await Document.getInitialProps(ctx);
+    const remotes = await flushChunks(process.env.REMOTES);
 
     return {
       ...initialProps,
-      remoteChunks: await flushChunks(process.env.REMOTES),
+      remoteChunks: remotes,
     };
   }
 
   render() {
     return (
       <Html>
-        <ExtendedHead>
+        <ExtendedHead> {/* this extends Head from next/document */}
           <meta name="robots" content="noindex" />
-          {/* Object.values() MUST be called here, not in git initial props */}
+          {/* Object.values() MUST be called here, not in getInitialProps */}
           {Object.values(this.props.remoteChunks)}
         </ExtendedHead>
         <body className="bg-background-grey">
@@ -304,7 +316,7 @@ revalidate({
 withFederatedSidecar(
   // normal MF config
   {
-    name: "app1",
+    name: "next1",
     filename: "static/chunks/remoteEntry.js",
     exposes: {},
     remotes: {},
@@ -324,15 +336,16 @@ withFederatedSidecar(
 );
 ```
 
-2. Inside `_document.js` do the following
+2. Inside `_document.js` (or `.tsx`) do the following:
 
 ```js
-import Document, { Html, Head, Main, NextScript } from "next/document";
+import Document, { Html, Main, NextScript } from "next/document";
 import React from "react";
 import {
-  ExtendedHead,
   revalidate,
   flushChunks,
+  ExtendedHead,
+  DevHotScript
 } from "@module-federation/nextjs-ssr/flushChunks";
 
 class MyDocument extends Document {
@@ -350,8 +363,9 @@ class MyDocument extends Document {
         }
       });
     });
-    const remotes = await flushChunks(process.env.REMOTES);
     const initialProps = await Document.getInitialProps(ctx);
+    const remotes = await flushChunks(process.env.REMOTES);
+
     return {
       ...initialProps,
       remoteChunks: remotes,
@@ -365,6 +379,7 @@ class MyDocument extends Document {
           <meta name="robots" content="noindex" />
           {Object.values(this.props.remoteChunks)}
         </ExtendedHead>
+        <DevHotScript /> {/* adds a timeout for process.env.NODE_ENV !== "development" */}
         <body className="bg-background-grey">
           <Main />
           <NextScript />
@@ -376,6 +391,171 @@ class MyDocument extends Document {
 
 export default MyDocument;
 ```
+
+## Configuring Pages for SSR
+
+To enable SSR for pages, you will need to create an async bootstrap layer for each page and the `_app` file.
+
+Since Next.js reads all the pages from the `pages` directory, your pages and `_app` file will be the bootstrap file for the real pages defined in another directory.
+
+1. Bootstrap the `_app` and pages:
+
+```js
+// pages/_app.js
+import dynamic from 'next/dynamic';
+const page = import('../async-pages/_app');
+
+const Page = dynamic(() => import('../async-pages/_app'));
+Page.getInitialProps = async ctx => {
+  const getInitialProps = (await page).default?.getInitialProps;
+  if (getInitialProps) {
+    return getInitialProps(ctx);
+  }
+  return {};
+};
+export default Page;
+```
+```js
+// pages/index.js
+import dynamic from 'next/dynamic';
+const page = import('../async-pages/index');
+
+const Page = dynamic(() => import('../async-pages/index'));
+Page.getInitialProps = async ctx => {
+  const getInitialProps = (await page).default?.getInitialProps;
+  if (getInitialProps) {
+    return getInitialProps(ctx);
+  }
+  return {};
+};
+export default Page;
+
+```
+2. Now, create a directory for the real `_app` and pages. Let's call this directory `async-pages`:
+
+```js
+// async-pages/_app.js
+function MyApp({ Component, pageProps }) {
+  return <Component {...pageProps} />;
+}
+
+export default MyApp;
+```
+
+```js
+// async-pages/index.js
+import Head from 'next/head';
+
+const Home = () => (
+  <>
+    <Head>
+      <title>Home</title>
+    </Head>
+    <main>
+      <h1>Home</h1>
+    </main>
+  </>
+);
+
+Home.getInitialProps = async (ctx) => {
+  return {};
+};
+
+export default Home;
+
+```
+
+## Dynamic Routing between applications
+
+To enable dynamic routes from another Next.js application, you will need to create a `[...slug].js` file in the `pages` directory as the async bootstrap file and one in the `async-pages` directory to handle the `createFederatedCatchAll` method.
+
+
+```js
+// async-pages/[...slug].js
+import { createFederatedCatchAll } from "@module-federation/next-catchall";
+
+const ErrorComponent = () => {
+  return <h1>There was an error trying to load route</h1>;
+};
+const NotFoundComponent = () => {
+  return <h1>4OH4 not found</h1>;
+};
+export default createFederatedCatchAll(
+  process.env.REMOTES,
+  ErrorComponent,
+  NotFoundComponent
+);
+```
+
+## Exposing and Consuming Pages
+
+Just like exposing components and other modules, pages can also be exposed from one Next.js application and consumed in another.
+
+To expose a page, you will need to define a `pages-map` in the remote app.
+
+1. Create a `pages-map.js` (or `.ts`) file in your project root.
+
+```js
+// next2
+// pages-map.js
+const pagesMap = {
+  "/": "./home" // "route": module "key" you're exposing
+}
+
+export default pagesMap;
+
+```
+2. In your `next.config.js` file, expose the page from the remote app.
+
+```js
+// next2
+// next.config.js
+withFederatedSidecar(
+  // normal MF config
+  {
+    name: "next2",
+    filename: "static/chunks/remoteEntry.js",
+    exposes: {
+      "./home": "./async-pages/index.js",
+      "./pages-map": "./pages-map.js",
+    },
+    remotes: {},
+    shared: {
+      react: {
+        requiredVersion: false,
+        singleton: true,
+      },
+    },
+  },
+  // sidecar specific options
+  {
+    experiments: {
+      flushChunks: true,
+      hot: true,
+    },
+  }
+);
+```
+To import a federated page from a remote, you will need to add a page to your app that represents the federated page.
+
+Add the page to your `pages` directory:
+
+```js
+// pages/index.js
+import dynamic from 'next/dynamic';
+const page = import('home/home');
+
+const Page = dynamic(() => import('home/home'));
+Page.getInitialProps = async (ctx) => {
+  const getInitialProps = (await page).default?.getInitialProps;
+  if (getInitialProps) {
+    return getInitialProps(ctx);
+  }
+  return {};
+};
+export default Page;
+```
+Then add the remote to the `next.config.js` file.
 
 ## Support and Maintenance
 
