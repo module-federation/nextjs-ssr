@@ -260,9 +260,6 @@ const revalidate = (options) => {
                 hashmap[name] = hash;
                 console.log(name, "hash is different - must hot reload server");
                 res();
-                if (poll) {
-                  process.exit();
-                }
               }
             } else {
               hashmap[name] = hash;
