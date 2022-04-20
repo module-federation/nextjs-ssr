@@ -2,13 +2,13 @@
 
 This plugin enables Module Federation on Next.js, both client-side and server-side.
 
-Module Federation on the server utilizes proprietary software, commonly known as "Software Streaming"
+Module Federation on the server utilizes proprietary software, commonly known as "Software Streaming".
 
 This is the only _stable_ and continuously supported solution for Module Federation on Next.js.
 
 It is also the only Federated SSR solution in existence that is supported by the creator of Module Federation.
 
-#### This is currently in beta, and should be considered experimental till v1 is released.
+---
 
 Software Streams have been tested extensively in other federated server applications, the underlying tech is proven to be reliable.
 However, software streams in Next.js is experimental, while in the beta phase.
@@ -23,6 +23,24 @@ This is because of our proximity to the Webpack Foundation & deep understanding
 
 - next ^12.x.x
 - SSR & CSR
+
+---
+
+## Contents
+
+- [What's shared by default?](#whats-shared-by-default)
+- [Security](#important-note-about-security)
+- [Using the plugin](#using-the-plugin)
+- [Configuration Options](#configuration-options)
+- [Demo](#demo)
+- [Configuring Pages for SSR](#configuring-pages-for-ssr)
+- [Dynamic Routing between Applications](#dynamic-routing-between-applications)
+- [Exposing and Consuming Pages](#exposing-and-consuming-pages)
+- [Support and Maintenance](#support-and-maintenance)
+- [Contact](#contact)
+
+---
+
 
 ## What's shared by default?
 
@@ -77,6 +95,8 @@ To provide a built-in protected route would require additional setup and complex
 
 How assets are protected should be up to the consumer, who might use the CDN, NGIX, middleware to implement a restricted route.
 
+---
+
 ## Using The Plugin
 
 I now support the top-level API as well as the low-level API
@@ -112,7 +132,8 @@ const SampleComponent = dynamic(
 
 Make sure you are using `mini-css-extract-plugin@2` - version 2 supports resolving assets through `publicPath:'auto'`
 
-## Options
+---
+## Configuration Options
 
 ```js
 const remotes = (isServer) => {
@@ -154,7 +175,7 @@ withFederatedSidecar(
   }
 );
 ```
-
+---
 ## Demo
 
 You can see it in action here: https://github.com/module-federation/module-federation-examples/tree/master/nextjs-ssr
@@ -392,6 +413,7 @@ class MyDocument extends Document {
 export default MyDocument;
 ```
 
+---
 ## Configuring Pages for SSR
 
 To enable SSR for pages, you will need to create an async bootstrap layer for each page and the `_app` file.
@@ -465,6 +487,7 @@ export default Home;
 
 ```
 
+---
 ## Dynamic Routing between applications
 
 To enable dynamic routes from another Next.js application, you will need to create a `[...slug].js` file in the `pages` directory as the async bootstrap file and one in the `async-pages` directory to handle the `createFederatedCatchAll` method.
@@ -487,6 +510,7 @@ export default createFederatedCatchAll(
 );
 ```
 
+---
 ## Exposing and Consuming Pages
 
 Just like exposing components and other modules, pages can also be exposed from one Next.js application and consumed in another.
@@ -557,6 +581,7 @@ export default Page;
 ```
 Then add the remote to the `next.config.js` file.
 
+---
 ## Support and Maintenance
 
 This software is maintained by the Module Federation Group.
@@ -582,6 +607,7 @@ All group members have full access to the organization and all its source code, 
 
 ScriptedAlchemy is the primary maintainer, not the only maintainer - this software is not dependent on "one person"
 
+---
 ## Reliability Testing
 
 This software undergoes significant QA, SRE, Security Audits, Performance testing with our employer.
@@ -590,9 +616,11 @@ RUM data and other telemetry is heavily implemented and monitored closely.
 
 Our software is backed with the resources of a multi-billion dollar corporation.
 
+---
 ## Contact
 
 If you have any questions or need to report a bug
 <a href="https://twitter.com/ScriptedAlchemy"> Reach me on Twitter @ScriptedAlchemy</a>
 
 Or join this discussion thread: https://github.com/module-federation/module-federation-examples/discussions/1482
+
