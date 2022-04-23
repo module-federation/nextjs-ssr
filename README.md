@@ -325,36 +325,10 @@ Options:
 // these are the defaults
 revalidate({
   // revalidate remotes by polling
-  poll: true, // defualt process.env.NODE_ENV === 'development'
+  poll: false, // defualt false
   // how ofter should it poll
   pollFrequeny: 3000, // defaults to 3000ms
 });
-```
-
-1. Enable the hot experiment via the plugin
-
-```js
-withFederatedSidecar(
-  // normal MF config
-  {
-    name: "next1",
-    filename: "static/chunks/remoteEntry.js",
-    exposes: {},
-    remotes: {},
-    shared: {
-      react: {
-        requiredVersion: false,
-        singleton: true,
-      },
-    },
-  },
-  // sidecar specific options
-  {
-    experiments: {
-      hot: true,
-    },
-  }
-);
 ```
 
 2. Inside `_document.js` (or `.tsx`) do the following:
@@ -400,7 +374,7 @@ class MyDocument extends Document {
           <meta name="robots" content="noindex" />
           {Object.values(this.props.remoteChunks)}
         </ExtendedHead>
-        <DevHotScript /> {/* adds a timeout for process.env.NODE_ENV !== "development" */}
+        <DevHotScript /> {/* useful in development mode if you terminate processes on hot reload */}
         <body className="bg-background-grey">
           <Main />
           <NextScript />
@@ -555,7 +529,6 @@ withFederatedSidecar(
   {
     experiments: {
       flushChunks: true,
-      hot: true,
     },
   }
 );
