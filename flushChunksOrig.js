@@ -41,6 +41,28 @@ const extractChunkCorrelation = (remoteContainer, lookup, request) => {
     );
   }
 };
+
+const extractLocalRemoteImport = (remoteContainer, lookup, request) => {
+  if (
+    remoteContainer &&
+    remoteContainer.chunkMap &&
+    remoteContainer.chunkMap.loadable &&
+    remoteContainer.chunkMap.loadable[request]
+  ) {
+    const path = remoteContainer.path.split("@")[1];
+    const [baseurl] = path.split("static/ssr");
+    remoteContainer.chunkMap.loadable[request].files.map((chunk) => {
+      if (!lookup.files.includes(new URL(chunk, baseurl).href)) {
+        lookup.files.push(new URL(chunk, baseurl).href);
+      }
+    });
+  } else {
+    console.warn(
+      "Module Federation:",
+      "unable to understand local remote import OR experiments.flushChunks is disabled"
+    );
+  }
+};
 const requireMethod =
   typeof __non_webpack_require__ !== "undefined"
     ? __non_webpack_require__
@@ -54,8 +76,10 @@ if (!foundNextFolder) {
     }
   });
 }
-const manifestPath =
-  path.join(foundNextFolder.split(".next")[0], ".next/react-loadable-manifest.json")
+const manifestPath = path.join(
+  foundNextFolder.split(".next")[0],
+  ".next/react-loadable-manifest.json"
+);
 let remotes = {};
 const loadableManifest = requireMethod(manifestPath);
 requireMethod.cache[manifestPath].exports = new Proxy(loadableManifest, {
@@ -64,10 +88,14 @@ requireMethod.cache[manifestPath].exports = new Proxy(loadableManifest, {
       let remoteImport = prop.split("->")[1];
 
       if (remoteImport) {
+        let isLocalImportLike = false;
         remoteImport = remoteImport.trim();
         const [remote, module] = remoteImport.split("/");
-
-        if (!remotes[remote]) {
+        if (!global.loadedRemotes[remote]) {
+          isLocalImportLike = true;
+          console.log("needs to search for a local import", prop);
+        }
+        if (!remotes[remote] && global.loadedRemotes[remote]) {
           Object.assign(
             remotes,
             generateDynamicRemoteScript(global.loadedRemotes[remote])
@@ -94,15 +122,31 @@ requireMethod.cache[manifestPath].exports = new Proxy(loadableManifest, {
               return true;
             }
           }
+
+          if (
+            remote.chunkMap &&
+            remote.chunkMap.loadable &&
+            remote.chunkMap.loadable[prop]
+          ) {
+            console.log("extracting local import from this loadable map", prop);
+            extractLocalRemoteImport(remote, dynamicLoadableManifestItem, prop);
+            return true;
+          }
         });
-        if (remoteModuleContainerId && process.env.NODE_ENV !== "development") {
-          dynamicLoadableManifestItem.id = remoteModuleContainerId;
+
+        if (!isLocalImportLike) {
+          if (
+            remoteModuleContainerId &&
+            process.env.NODE_ENV !== "development"
+          ) {
+            dynamicLoadableManifestItem.id = remoteModuleContainerId;
+          }
+          extractChunkCorrelation(
+            global.loadedRemotes[remote],
+            dynamicLoadableManifestItem,
+            `./${module}`
+          );
         }
-        extractChunkCorrelation(
-          global.loadedRemotes[remote],
-          dynamicLoadableManifestItem,
-          `./${module}`
-        );
         return dynamicLoadableManifestItem;
       }
     }
