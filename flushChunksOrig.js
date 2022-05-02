@@ -295,7 +295,7 @@ const revalidate = (options) => {
         }
         console.log("flush chunks: ", remote);
         const [name, url] = remote.split("@");
-        fetch(url)
+        (global.webpackChunkLoad || fetch)(url)
           .then((re) => re.text())
           .then((contents) => {
             var hash = crypto.createHash("md5").update(contents).digest("hex");
