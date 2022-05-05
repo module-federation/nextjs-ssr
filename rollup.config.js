@@ -10,7 +10,7 @@ export default {
     file: "bundle.js",
     format: "cjs",
   },
-  external: ["fs", "path", "webpack", "crypto"], // tells Rollup 'I know what I'm doing here'
+  external: ["fs", "path", "webpack", "crypto", "next"], // tells Rollup 'I know what I'm doing here'
   plugins: [
     nodeResolve({ preferBuiltins: true }), // or `true`
     commonjs(),
