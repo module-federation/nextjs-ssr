@@ -307,7 +307,7 @@ const revalidate = (options) => {
               }
             } else {
               hashmap[name] = hash;
-              res(false)
+              res(false);
             }
           })
           .catch((e) => {
@@ -318,12 +318,12 @@ const revalidate = (options) => {
               "Failed to load or is not online",
               e
             );
-            res(true)
+            res(true);
           });
       }
     }).then((shouldReload) => {
-      if(!shouldReload) {
-        return false
+      if (!shouldReload) {
+        return false;
       }
       let req;
       if (typeof __non_webpack_require__ === "undefined") {
@@ -349,7 +349,7 @@ const revalidate = (options) => {
       });
     });
   }
-  return true
+  return true;
 };
 
 const DevHotScript = () => {
