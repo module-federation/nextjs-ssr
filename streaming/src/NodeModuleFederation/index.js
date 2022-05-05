@@ -147,7 +147,7 @@ class StreamingFederation {
     );
     const defs = {
       "process.env.REMOTES": runtime,
-      "process.env.REMOTE_CONFIG": hot
+      "process.env.REMOTE_CONFIG": hot,
     };
 
     new ((webpack && webpack.DefinePlugin) || require("webpack").DefinePlugin)(
