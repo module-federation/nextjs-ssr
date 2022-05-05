@@ -329,7 +329,7 @@ Options:
 // these are the defaults
 revalidate({
   // revalidate remotes by polling
-  poll: true, // defualt process.env.NODE_ENV === 'development'
+  poll: false,
   // how ofter should it poll
   pollFrequeny: 3000, // defaults to 3000ms
 });

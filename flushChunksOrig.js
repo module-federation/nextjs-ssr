@@ -299,28 +299,32 @@ const revalidate = (options) => {
           .then((re) => re.text())
           .then((contents) => {
             var hash = crypto.createHash("md5").update(contents).digest("hex");
-
             if (hashmap[name]) {
               if (hashmap[name] !== hash) {
                 hashmap[name] = hash;
                 console.log(name, "hash is different - must hot reload server");
-                res();
+                res(true);
               }
             } else {
               hashmap[name] = hash;
+              res(false)
             }
           })
           .catch((e) => {
-            console.log(
+            console.error(
               "Remote",
               name,
               url,
               "Failed to load or is not online",
               e
             );
+            res(true)
           });
       }
-    }).then(() => {
+    }).then((shouldReload) => {
+      if(!shouldReload) {
+        return false
+      }
       let req;
       if (typeof __non_webpack_require__ === "undefined") {
         req = require;
@@ -345,10 +349,7 @@ const revalidate = (options) => {
       });
     });
   }
-
-  return new Promise((res, rej) => {
-    res(false);
-  });
+  return true
 };
 
 const DevHotScript = () => {
