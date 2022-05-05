@@ -41,7 +41,6 @@ This is because of our proximity to the Webpack Foundation & deep understanding
 
 ---
 
-
 ## What's shared by default?
 
 Under the hood we share some next internals automatically
@@ -133,6 +132,7 @@ const SampleComponent = dynamic(
 Make sure you are using `mini-css-extract-plugin@2` - version 2 supports resolving assets through `publicPath:'auto'`
 
 ---
+
 ## Configuration Options
 
 ```js
@@ -175,7 +175,9 @@ withFederatedSidecar(
   }
 );
 ```
+
 ---
+
 ## Demo
 
 You can see it in action here: https://github.com/module-federation/module-federation-examples/tree/master/nextjs-ssr
@@ -294,7 +296,9 @@ class MyDocument extends Document {
   render() {
     return (
       <Html>
-        <ExtendedHead> {/* this extends Head from next/document */}
+        <ExtendedHead>
+          {" "}
+          {/* this extends Head from next/document */}
           <meta name="robots" content="noindex" />
           {/* Object.values() MUST be called here, not in getInitialProps */}
           {Object.values(this.props.remoteChunks)}
@@ -340,7 +344,7 @@ import {
   revalidate,
   flushChunks,
   ExtendedHead,
-  DevHotScript
+  DevHotScript,
 } from "@module-federation/nextjs-ssr/flushChunks";
 
 class MyDocument extends Document {
@@ -388,6 +392,7 @@ export default MyDocument;
 ```
 
 ---
+
 ## Configuring Pages for SSR
 
 To enable SSR for pages, you will need to create an async bootstrap layer for each page and the `_app` file.
@@ -398,11 +403,11 @@ Since Next.js reads all the pages from the `pages` directory, your pages and `_a
 
 ```js
 // pages/_app.js
-import dynamic from 'next/dynamic';
-const page = import('../async-pages/_app');
+import dynamic from "next/dynamic";
+const page = import("../async-pages/_app");
 
-const Page = dynamic(() => import('../async-pages/_app'));
-Page.getInitialProps = async ctx => {
+const Page = dynamic(() => import("../async-pages/_app"));
+Page.getInitialProps = async (ctx) => {
   const getInitialProps = (await page).default?.getInitialProps;
   if (getInitialProps) {
     return getInitialProps(ctx);
@@ -411,13 +416,14 @@ Page.getInitialProps = async ctx => {
 };
 export default Page;
 ```
+
 ```js
 // pages/index.js
-import dynamic from 'next/dynamic';
-const page = import('../async-pages/index');
+import dynamic from "next/dynamic";
+const page = import("../async-pages/index");
 
-const Page = dynamic(() => import('../async-pages/index'));
-Page.getInitialProps = async ctx => {
+const Page = dynamic(() => import("../async-pages/index"));
+Page.getInitialProps = async (ctx) => {
   const getInitialProps = (await page).default?.getInitialProps;
   if (getInitialProps) {
     return getInitialProps(ctx);
@@ -425,8 +431,8 @@ Page.getInitialProps = async ctx => {
   return {};
 };
 export default Page;
-
 ```
+
 2. Now, create a directory for the real `_app` and pages. Let's call this directory `async-pages`:
 
 ```js
@@ -440,7 +446,7 @@ export default MyApp;
 
 ```js
 // async-pages/index.js
-import Head from 'next/head';
+import Head from "next/head";
 
 const Home = () => (
   <>
@@ -458,14 +464,13 @@ Home.getInitialProps = async (ctx) => {
 };
 
 export default Home;
-
 ```
 
 ---
+
 ## Dynamic Routing between applications
 
 To enable dynamic routes from another Next.js application, you will need to create a `[...slug].js` file in the `pages` directory as the async bootstrap file and one in the `async-pages` directory to handle the `createFederatedCatchAll` method.
-
 
 ```js
 // async-pages/[...slug].js
@@ -485,6 +490,7 @@ export default createFederatedCatchAll(
 ```
 
 ---
+
 ## Exposing and Consuming Pages
 
 Just like exposing components and other modules, pages can also be exposed from one Next.js application and consumed in another.
@@ -497,12 +503,12 @@ To expose a page, you will need to define a `pages-map` in the remote app.
 // next2
 // pages-map.js
 const pagesMap = {
-  "/": "./home" // "route": module "key" you're exposing
-}
+  "/": "./home", // "route": module "key" you're exposing
+};
 
 export default pagesMap;
-
 ```
+
 2. In your `next.config.js` file, expose the page from the remote app.
 
 ```js
@@ -533,16 +539,17 @@ withFederatedSidecar(
   }
 );
 ```
+
 To import a federated page from a remote, you will need to add a page to your app that represents the federated page.
 
 Add the page to your `pages` directory:
 
 ```js
 // pages/index.js
-import dynamic from 'next/dynamic';
-const page = import('home/home');
+import dynamic from "next/dynamic";
+const page = import("home/home");
 
-const Page = dynamic(() => import('home/home'));
+const Page = dynamic(() => import("home/home"));
 Page.getInitialProps = async (ctx) => {
   const getInitialProps = (await page).default?.getInitialProps;
   if (getInitialProps) {
@@ -552,9 +559,11 @@ Page.getInitialProps = async (ctx) => {
 };
 export default Page;
 ```
+
 Then add the remote to the `next.config.js` file.
 
 ---
+
 ## Support and Maintenance
 
 This software is maintained by the Module Federation Group.
@@ -581,6 +590,7 @@ All group members have full access to the organization and all its source code, 
 ScriptedAlchemy is the primary maintainer, not the only maintainer - this software is not dependent on "one person"
 
 ---
+
 ## Reliability Testing
 
 This software undergoes significant QA, SRE, Security Audits, Performance testing with our employer.
@@ -590,10 +600,10 @@ RUM data and other telemetry is heavily implemented and monitored closely.
 Our software is backed with the resources of a multi-billion dollar corporation.
 
 ---
+
 ## Contact
 
 If you have any questions or need to report a bug
 <a href="https://twitter.com/ScriptedAlchemy"> Reach me on Twitter @ScriptedAlchemy</a>
 
 Or join this discussion thread: https://github.com/module-federation/module-federation-examples/discussions/1482
-
