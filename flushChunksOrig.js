@@ -288,6 +288,7 @@ const revalidate = (options) => {
           revalidate(options);
         }, timeout);
       }
+
       for (const property in global.REMOTE_CONFIG) {
         let remote = global.REMOTE_CONFIG[property];
         if (typeof remote === "function") {
@@ -331,7 +332,7 @@ const revalidate = (options) => {
       } else {
         req = __non_webpack_require__;
       }
-
+console.log('hot reloading again');
       if (global.hotLoad) {
         global.hotLoad();
       }
