@@ -122,14 +122,12 @@ requireMethod.cache[manifestPath].exports = new Proxy(loadableManifest, {
               return true;
             }
           }
-console.log(remote.chunkMap.loadable);
           if (
             remote.chunkMap &&
             remote.chunkMap.loadable &&
             remote.chunkMap.loadable[prop]
           ) {
             console.log("extracting local import from this loadable map", prop);
-            console.log(prop,dynamicLoadableManifestItem)
             extractLocalRemoteImport(remote, dynamicLoadableManifestItem, prop);
             return true;
           }
