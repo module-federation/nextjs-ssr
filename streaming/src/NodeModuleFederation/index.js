@@ -114,6 +114,7 @@ function buildRemotes(mfConf, webpack) {
     const loadTemplate = ${template};
     return loadTemplate(remoteConfig)
     })`;
+
       acc.buildTime[name] = `promise ${middleware}.then((remoteConfig)=>{
     console.log('remoteConfig buildtime',remoteConfig);
     global.REMOTE_CONFIG[${JSON.stringify(name)}] = remoteConfig;
