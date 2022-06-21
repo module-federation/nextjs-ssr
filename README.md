@@ -201,18 +201,18 @@ const remotes = (isServer) => {
 };
 
 const nextConfig = {
-    // your original next.config.js export
-    // we attach next internals to share scope at runtime
+  // your original next.config.js export
+  // we attach next internals to share scope at runtime
 
-    webpack(config, options) {
-        const {webpack, isServer} = options;
-        config.module.rules.push({
-            test: [/_app.[jt]sx?/, /_document.[jt]sx?/],
-            loader: "@module-federation/nextjs-ssr/lib/federation-loader.js",
-        });
+  webpack(config, options) {
+    const { webpack, isServer } = options;
+    config.module.rules.push({
+      test: [/_app.[jt]sx?/, /_document.[jt]sx?/],
+      loader: "@module-federation/nextjs-ssr/lib/federation-loader.js",
+    });
 
-        return config;
-    }
+    return config;
+  },
 };
 
 module.exports = withPlugins(
@@ -225,7 +225,7 @@ module.exports = withPlugins(
         "./sampleComponent": "./components/sampleComponent.js",
       },
       shared: {},
-    })
+    }),
   ],
   nextConfig
 );
