@@ -180,7 +180,10 @@ const flushChunks = async (remoteEnvVar = process.env.REMOTES) => {
               request
             );
           }
-        );
+        ).catch((err) => {
+          console.error("Error loading remote", err);
+          return Promise.resolve();
+        });
         preload.push(remotePreload);
       }
     }
@@ -266,6 +269,7 @@ export class ExtendedHead extends Head {
 }
 var interval;
 const hashmap = {};
+const badRemotes = new Set()
 const revalidate = (options) => {
   if (global.REMOTE_CONFIG) {
     return new Promise(async (res) => {
@@ -289,14 +293,54 @@ const revalidate = (options) => {
       for (const property in global.REMOTE_CONFIG) {
         let remote = global.REMOTE_CONFIG[property];
         if (typeof remote === "function") {
-          remote = await remote();
+          try {
+            remote = await remote();
+            console.log(remote);
+          } catch (e) {
+            console.error("Error loading remote", e);
+          }
         }
         console.log("flush chunks: ", remote);
         const [name, url] = remote.split("@");
+        if (badRemotes.has(url)) { return false }
         (global.webpackChunkLoad || fetch)(url)
-          .then((re) => re.text())
+          .then((res) => {
+            badRemotes.add(url)
+            if (res.status === 404) {
+              console.error(
+                "Module Federation: Could not load remote",
+                remote,
+                "status",
+                res.status
+              );
+              return false;
+            }
+            if (res.headers) {
+              if (!res.headers.get("content-type").includes("javascript")) {
+                badRemotes.add(url)
+                console.error(
+                  "Module Federation: Could not load remote",
+                  remote,
+                  "content type",
+                  res.headers.get("content-type"),
+                  "was returned"
+                );
+                return false;
+              }
+            }
+            return res;
+          })
+          .then((re) => {
+            if (!re) return false;
+            return re.text();
+          })
           .then((contents) => {
+            if (!contents) {
+              res(false);
+              return;
+            }
             var hash = crypto.createHash("md5").update(contents).digest("hex");
+            console.log(hashmap[name], hash);
             if (hashmap[name]) {
               if (hashmap[name] !== hash) {
                 hashmap[name] = hash;

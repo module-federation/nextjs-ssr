@@ -2,9 +2,9 @@
  * loadScript(baseURI, fileName, cb)
  * loadScript(scriptUrl, cb)
  */
-//language=JS
-export default `
-    function loadScript() {
+
+module.exports = `
+    function loadScript(url,cb,chunkID) {
         var url;
         var cb = arguments[arguments.length - 1];
         if (typeof cb !== "function") {
