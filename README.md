@@ -1,3 +1,11 @@
+## This Repo is being sunset in favor of a plugin that supports both SSR & CSR in one
+
+All efforts are being directed to this PR: https://github.com/module-federation/nextjs-mf/pull/108
+
+This repo exists as a reference point to contributors. Do not use it, it will not be maintained further.
+
+This plugin uses the sidecar design, which has been killed in favor of childCompiler design used in nextjs-mf
+
 # Module Federation For Next.js, with SSR support
 
 This plugin enables Module Federation on Next.js, both client-side and server-side.
