@@ -102,10 +102,4 @@ dist
 
 # TernJS port file
 .tern-port
-/bundle.js
 /.idea/
-/compiled.jsc
-/grantAccess.js
-/updated.json
-/user.json
-/flushChunks.js

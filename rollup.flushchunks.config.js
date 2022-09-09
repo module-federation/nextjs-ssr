@@ -19,6 +19,5 @@ export default {
       process: false,
     }),
     builtins(),
-    // terser(),
   ],
 };
